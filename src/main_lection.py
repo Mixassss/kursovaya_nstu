@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from dialog_window_exit import Ui_Dialog as ExitDialog  # Импортируем класс диалогового окна выхода
-
+from main_zadania1 import Ui_Dialog as ZadaniaDialog  # Импортируем класс из main_zadania1
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -120,6 +120,7 @@ class Ui_Dialog(object):
         self.easy_question.setFont(font)
         self.easy_question.setObjectName("easy_question")
         self.middle_question = QtWidgets.QCommandLinkButton(self.frame_question)
+        self.easy_question.clicked.connect(self.open_zadania_window) # Подключаем кнопку "Основы программирования. Вопросы легкой сложности" к методу
         self.middle_question.setGeometry(QtCore.QRect(0, 40, 601, 41))
         font = QtGui.QFont()
         font.setFamily("Utopia")
@@ -151,6 +152,14 @@ class Ui_Dialog(object):
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def open_zadania_window(self):
+        self.zadania_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
+        self.zadania_ui = ZadaniaDialog()
+        self.zadania_ui.setupUi(self.zadania_dialog)
+
+
+        self.zadania_dialog.exec_() # Показываем новое окно
 
     def show_exit_dialog(self):
         dialog = QtWidgets.QDialog()
