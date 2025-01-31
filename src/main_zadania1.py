@@ -164,6 +164,7 @@ class Ui_Dialog(object):
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(320, 530, 171, 41))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(self.close_dialog)
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
         self.pushButton_2.setGeometry(QtCore.QRect(630, 530, 151, 41))
         self.pushButton_2.setObjectName("pushButton_2")
@@ -199,6 +200,9 @@ class Ui_Dialog(object):
         self.result_ui.setupUi(self.result_dialog)
         self.result_dialog.exec_()
 
+    def close_dialog(self):
+        self.dialog.close()
+
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Обучающая система"))
@@ -225,8 +229,9 @@ class Ui_Dialog(object):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Dialog = QtWidgets.QDialog()
+    dialog = QtWidgets.QDialog()
     ui = Ui_Dialog()
-    ui.setupUi(Dialog)
-    Dialog.show()
+    ui.setupUi(dialog)
+    ui.dialog = dialog  
+    dialog.show()
     sys.exit(app.exec_())
