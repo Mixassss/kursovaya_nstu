@@ -3,6 +3,7 @@ import sys
 from one_ball import Ui_Dialog as OneBallDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
+from main_zadania2 import Ui_Dialog as MainZadania2Dialog  # Импортируем класс из main_zadania2.py
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -164,10 +165,11 @@ class Ui_Dialog(object):
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(320, 530, 171, 41))
         self.pushButton.setObjectName("pushButton")
-        self.pushButton.clicked.connect(self.close_dialog)
+        self.pushButton.clicked.connect(Dialog.reject)  # Закрываем текущее окно
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
         self.pushButton_2.setGeometry(QtCore.QRect(630, 530, 151, 41))
         self.pushButton_2.setObjectName("pushButton_2")
+        self.pushButton_2.clicked.connect(self.open_next_question)  # Подключаем кнопку к функции открытия следующего вопроса
         self.pushButton_3 = QtWidgets.QPushButton(Dialog)
         self.pushButton_3.setGeometry(QtCore.QRect(20, 530, 161, 41))
         self.pushButton_3.setObjectName("pushButton_3")
@@ -200,8 +202,12 @@ class Ui_Dialog(object):
         self.result_ui.setupUi(self.result_dialog)
         self.result_dialog.exec_()
 
-    def close_dialog(self):
-        self.dialog.close()
+    def open_next_question(self):
+        """Открывает окно с следующим вопросом (main_zadania2.py)."""
+        self.next_dialog = QtWidgets.QDialog()
+        self.next_ui = MainZadania2Dialog()
+        self.next_ui.setupUi(self.next_dialog)
+        self.next_dialog.exec_()
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -224,7 +230,6 @@ class Ui_Dialog(object):
         self.pushButton.setText(_translate("Dialog", "Вернуться на главную"))
         self.pushButton_2.setText(_translate("Dialog", "Следующий вопрос"))
         self.pushButton_3.setText(_translate("Dialog", "Предыдущая теория"))
-
 
 if __name__ == "__main__":
     import sys

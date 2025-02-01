@@ -1,5 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import sys
+from one_ball import Ui_Dialog as OneBallDialog
+from two_ball import Ui_Dialog as TwoBallDialog
+from max_ball import Ui_Dialog as MaxBallDialog
+from zero_ball import Ui_Dialog as ZeroBallDialog
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -9,6 +13,7 @@ class Ui_Dialog(object):
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(330, 740, 171, 41))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(Dialog.reject)  # Закрываем текущее окно
         self.pushButton_5 = QtWidgets.QPushButton(Dialog)
         self.pushButton_5.setGeometry(QtCore.QRect(620, 740, 151, 41))
         self.pushButton_5.setObjectName("pushButton_5")
@@ -43,6 +48,7 @@ class Ui_Dialog(object):
         self.label_18.setObjectName("label_18")
         self.pushButton_6 = QtWidgets.QPushButton(self.frame_5)
         self.pushButton_6.setGeometry(QtCore.QRect(680, 530, 87, 27))
+        self.pushButton_6.clicked.connect(self.check_answers)  # Подключаем кнопку к функции проверки ответов
         self.pushButton_6.setStyleSheet("background-color: rgb(28, 113, 216);")
         self.pushButton_6.setObjectName("pushButton_6")
         self.AnswerA_2 = QtWidgets.QCheckBox(self.frame_5)
@@ -221,6 +227,37 @@ class Ui_Dialog(object):
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
+    def check_answers(self):
+        score = 0
+
+        # Проверяем первый вопрос
+        if self.AnswerB.isChecked():  # Правильный ответ B
+            score += 1
+        
+        # Проверяем второй вопрос
+        if self.AnswerA_2.isChecked():  # Правильный ответ A
+            score += 1
+            
+        # Проверяем третий вопрос
+        if self.AnswerA_3.isChecked():  # Правильный ответ A
+            score += 1
+        
+        # Открываем соответствующее окно в зависимости от набранных баллов
+        if score == 3:
+            self.show_result(MaxBallDialog)
+        elif score == 2:
+            self.show_result(TwoBallDialog)
+        elif score == 1:
+            self.show_result(OneBallDialog)
+        else:
+            self.show_result(ZeroBallDialog)
+
+    def show_result(self, dialog_class):
+        self.result_dialog = QtWidgets.QDialog()
+        self.result_ui = dialog_class()
+        self.result_ui.setupUi(self.result_dialog)
+        self.result_dialog.exec_()
+
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Обучающая система"))
@@ -252,8 +289,9 @@ class Ui_Dialog(object):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Dialog = QtWidgets.QDialog()
+    dialog = QtWidgets.QDialog()
     ui = Ui_Dialog()
-    ui.setupUi(Dialog)
-    Dialog.show()
+    ui.setupUi(dialog)
+    ui.dialog = dialog  
+    dialog.show()
     sys.exit(app.exec_())

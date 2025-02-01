@@ -1,5 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+import sys
+from one_ball import Ui_Dialog as OneBallDialog
+from two_ball import Ui_Dialog as TwoBallDialog
+from max_ball import Ui_Dialog as MaxBallDialog
+from zero_ball import Ui_Dialog as ZeroBallDialog
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -148,6 +152,7 @@ class Ui_Dialog(object):
         self.label_26.setObjectName("label_26")
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(490, 750, 171, 41))
+        self.pushButton.clicked.connect(Dialog.reject)  # Закрываем текущее окно
         self.pushButton.setObjectName("pushButton")
         self.pushButton_3 = QtWidgets.QPushButton(Dialog)
         self.pushButton_3.setGeometry(QtCore.QRect(150, 750, 161, 41))
