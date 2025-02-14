@@ -3,11 +3,14 @@ import sys
 from one_ball import Ui_Dialog as OneBallDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
-from main_zadania2 import Ui_Dialog as MainZadania2Dialog  # Импортируем класс из main_zadania2.py
+
+def some_function():
+    from main_zadania2 import Ui_Dialog as MainZadania2Dialog  # Импортируем внутри функции
 
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
+        self.dialog = Dialog  # Сохраняем ссылку на диалог
         Dialog.setObjectName("Dialog")
         Dialog.resize(800, 600)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
@@ -166,9 +169,10 @@ class Ui_Dialog(object):
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(320, 530, 171, 41))
         self.pushButton.setObjectName("pushButton")
-        self.pushButton.clicked.connect(Dialog.reject)  # Закрываем текущее окно
+        self.pushButton.clicked.connect(self.exit_application)
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
         self.pushButton_2.setGeometry(QtCore.QRect(630, 530, 151, 41))
+        self.pushButton_2.clicked.connect(self.open_next_question)  # Подключаем кнопку к функции
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(Dialog)
         self.pushButton_3.setGeometry(QtCore.QRect(20, 530, 161, 41))
@@ -177,16 +181,58 @@ class Ui_Dialog(object):
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
+    def exit_application(self):
+        # Закрываем диалог
+        self.dialog.close()
+
+    def open_next_question(self):
+        # Закрываем текущее окно
+        self.dialog.close()
+        
+        # Открываем новое окно с вопросами
+        self.main_dialog = QtWidgets.QDialog()
+        self.main_ui = some_function()
+        self.main_ui.setupUi(self.main_dialog)
+        self.main_dialog.exec_()  # Запускаем новое диалоговое окно
+
     def check_answers(self):
         score = 0
 
         # Проверяем первый вопрос
         if self.AnswerB.isChecked():  # Правильный ответ B
             score += 1
-        
+            self.AnswerB.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(0, 255, 0);")  # Зеленый фон для правильного ответа
+        else:
+            # Если выбран неверный ответ, меняем фон на красный
+            if self.AnswerA.isChecked():
+                self.AnswerA.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerC.isChecked():
+                self.AnswerC.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerD.isChecked():
+                self.AnswerD.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+
         # Проверяем второй вопрос
         if self.AnswerC_2.isChecked():  # Правильный ответ C
             score += 1
+            self.AnswerC_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(0, 255, 0);")  # Зеленый фон для правильного ответа
+        else:
+            # Если выбран неверный ответ, меняем фон на красный
+            if self.AnswerA_2.isChecked():
+                self.AnswerA_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerB_2.isChecked():
+                self.AnswerB_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerD_2.isChecked():
+                self.AnswerD_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+
+        # Блокируем радиокнопки после выбора ответа
+        self.AnswerA.setEnabled(False)
+        self.AnswerB.setEnabled(False)
+        self.AnswerC.setEnabled(False)
+        self.AnswerD.setEnabled(False)
+        self.AnswerA_2.setEnabled(False)
+        self.AnswerB_2.setEnabled(False)
+        self.AnswerC_2.setEnabled(False)
+        self.AnswerD_2.setEnabled(False)
 
         # Открываем соответствующее окно в зависимости от набранных баллов
         if score == 2:
@@ -234,7 +280,6 @@ class Ui_Dialog(object):
 
 
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     Dialog = QtWidgets.QDialog()
     ui = Ui_Dialog()

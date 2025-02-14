@@ -4,20 +4,25 @@ from one_ball import Ui_Dialog as OneBallDialog
 from two_ball import Ui_Dialog as TwoBallDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
+from main_zadania3 import Ui_Dialog as MainZadania3Dialog  # Импортируем класс из main_zadania3.py
 
+def some_function():
+    from main_zadania1 import Ui_Dialog as MainZadania1Dialog  # Импортируем внутри функции
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
+        self.dialog = Dialog  # Сохраняем ссылку на диалог
         Dialog.setObjectName("Dialog")
         Dialog.resize(800, 720)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(320, 660, 171, 41))
         self.pushButton.setObjectName("pushButton")
-        self.pushButton.clicked.connect(Dialog.reject)  # Закрываем текущее окно
+        self.pushButton.clicked.connect(self.exit_application)
         self.pushButton_5 = QtWidgets.QPushButton(Dialog)
         self.pushButton_5.setGeometry(QtCore.QRect(620, 660, 151, 41))
         self.pushButton_5.setObjectName("pushButton_5")
+        self.pushButton_5.clicked.connect(self.open_next_question)  # Подключаем кнопку к функции
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
         self.pushButton_2.setGeometry(QtCore.QRect(40, 660, 161, 41))
         self.pushButton_2.setObjectName("pushButton_2")
@@ -235,20 +240,74 @@ class Ui_Dialog(object):
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
+    def exit_application(self):
+        # Закрываем диалог
+        self.dialog.close()
+
+    def open_next_question(self):
+        # Закрываем текущее окно
+        self.dialog.close()
+        
+        # Открываем новое окно с вопросами
+        self.main_dialog = QtWidgets.QDialog()
+        self.main_ui = MainZadania3Dialog()
+        self.main_ui.setupUi(self.main_dialog)
+        self.main_dialog.exec_()  # Запускаем новое диалоговое окно
+
     def check_answers(self):
         score = 0
-
         # Проверяем первый вопрос
         if self.AnswerB.isChecked():  # Правильный ответ B
             score += 1
-        
+            self.AnswerB.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(0, 255, 0);")  # Зеленый фон для правильного ответа
+        else:
+            # Если выбран неверный ответ, меняем фон на красный
+            if self.AnswerA.isChecked():
+                self.AnswerA.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerC.isChecked():
+                self.AnswerC.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerD.isChecked():
+                self.AnswerD.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+
         # Проверяем второй вопрос
         if self.AnswerA_2.isChecked():  # Правильный ответ A
             score += 1
-            
+            self.AnswerA_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(0, 255, 0);")  # Зеленый фон для правильного ответа
+        else:
+            # Если выбран неверный ответ, меняем фон на красный
+            if self.AnswerB_2.isChecked():
+                self.AnswerB_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerC_2.isChecked():
+                self.AnswerC_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerD_2.isChecked():
+                self.AnswerD_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+
         # Проверяем третий вопрос
         if self.AnswerA_3.isChecked():  # Правильный ответ A
             score += 1
+            self.AnswerA_3.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(0, 255, 0);")  # Зеленый фон для правильного ответа
+        else:
+            # Если выбран неверный ответ, меняем фон на красный
+            if self.AnswerB_3.isChecked():
+                self.AnswerB_3.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerC_3.isChecked():
+                self.AnswerC_3.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+            elif self.AnswerD_3.isChecked():
+                self.AnswerD_3.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+
+        # Блокируем радиокнопки после выбора ответа
+        self.AnswerA.setEnabled(False)
+        self.AnswerB.setEnabled(False)
+        self.AnswerC.setEnabled(False)
+        self.AnswerD.setEnabled(False)
+        self.AnswerA_2.setEnabled(False)
+        self.AnswerB_2.setEnabled(False)
+        self.AnswerC_2.setEnabled(False)
+        self.AnswerD_2.setEnabled(False)
+        self.AnswerA_3.setEnabled(False)
+        self.AnswerB_3.setEnabled(False)
+        self.AnswerC_3.setEnabled(False)
+        self.AnswerD_3.setEnabled(False)
         
         # Открываем соответствующее окно в зависимости от набранных баллов
         if score == 3:
