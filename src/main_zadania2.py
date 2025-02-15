@@ -1,7 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
-from one_ball import Ui_Dialog as OneBallDialog
+from one_ball_bad import Ui_Dialog as OneBallBadDialog
 from two_ball import Ui_Dialog as TwoBallDialog
+from three_ball import Ui_Dialog as ThreeBallDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
 from main_zadania3 import Ui_Dialog as MainZadania3Dialog  # Импортируем класс из main_zadania3.py
@@ -10,8 +11,9 @@ def some_function():
     from main_zadania1 import Ui_Dialog as MainZadania1Dialog  # Импортируем внутри функции
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog):
+    def setupUi(self, Dialog, main_dialog):
         self.dialog = Dialog  # Сохраняем ссылку на диалог
+        self.main_dialog = main_dialog  # Сохраняем ссылку на основной диалог
         Dialog.setObjectName("Dialog")
         Dialog.resize(800, 720)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
@@ -271,7 +273,7 @@ class Ui_Dialog(object):
 
         # Проверяем второй вопрос
         if self.AnswerA_2.isChecked():  # Правильный ответ A
-            score += 1
+            score += 2
             self.AnswerA_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(0, 255, 0);")  # Зеленый фон для правильного ответа
         else:
             # Если выбран неверный ответ, меняем фон на красный
@@ -295,6 +297,9 @@ class Ui_Dialog(object):
             elif self.AnswerD_3.isChecked():
                 self.AnswerD_3.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
 
+        # Обновляем значение в основном диалоге
+        self.main_dialog.four_max_balls_middle.setText(f"{score}/4")  # Обновляем значение
+
         # Блокируем радиокнопки после выбора ответа
         self.AnswerA.setEnabled(False)
         self.AnswerB.setEnabled(False)
@@ -310,12 +315,14 @@ class Ui_Dialog(object):
         self.AnswerD_3.setEnabled(False)
         
         # Открываем соответствующее окно в зависимости от набранных баллов
-        if score == 3:
+        if score == 4:
             self.show_result(MaxBallDialog)
+        elif score == 3:
+            self.show_result(ThreeBallDialog)
         elif score == 2:
             self.show_result(TwoBallDialog)
         elif score == 1:
-            self.show_result(OneBallDialog)
+            self.show_result(OneBallBadDialog)
         else:
             self.show_result(ZeroBallDialog)
 

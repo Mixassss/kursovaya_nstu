@@ -3,14 +3,13 @@ import sys
 from one_ball import Ui_Dialog as OneBallDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
-
-def some_function():
-    from main_zadania2 import Ui_Dialog as MainZadania2Dialog  # Импортируем внутри функции
+from main_zadania2 import Ui_Dialog as MainZadania2Dialog
 
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog):
+    def setupUi(self, Dialog, main_dialog):
         self.dialog = Dialog  # Сохраняем ссылку на диалог
+        self.main_dialog = main_dialog  # Сохраняем ссылку на основной диалог
         Dialog.setObjectName("Dialog")
         Dialog.resize(800, 600)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
@@ -191,7 +190,7 @@ class Ui_Dialog(object):
         
         # Открываем новое окно с вопросами
         self.main_dialog = QtWidgets.QDialog()
-        self.main_ui = some_function()
+        self.main_ui = MainZadania2Dialog()
         self.main_ui.setupUi(self.main_dialog)
         self.main_dialog.exec_()  # Запускаем новое диалоговое окно
 
@@ -223,6 +222,9 @@ class Ui_Dialog(object):
                 self.AnswerB_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
             elif self.AnswerD_2.isChecked():
                 self.AnswerD_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
+
+        # Обновляем значение в основном диалоге
+        self.main_dialog.two_max_balls_ez.setText(f"{score}/2")  # Обновляем значение
 
         # Блокируем радиокнопки после выбора ответа
         self.AnswerA.setEnabled(False)

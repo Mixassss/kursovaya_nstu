@@ -237,35 +237,28 @@ class Ui_Dialog(object):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def open_zadania_window(self):
-        self.zadania_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
+        self.zadania_dialog = QtWidgets.QDialog()  # Создаем новое окно для заданий
         self.zadania_ui = ZadaniaDialog1()
-        self.zadania_ui.setupUi(self.zadania_dialog)
+        self.zadania_ui.setupUi(self.zadania_dialog, self)  # Передаем ссылку на основной диалог
+        self.zadania_dialog.exec_()  # Показываем новое окно
 
-
-        self.zadania_dialog.exec_() # Показываем новое окно
 
     def open_zadania2_window(self):
         self.zadania2_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania2_ui = ZadaniaDialog2()
-        self.zadania2_ui.setupUi(self.zadania2_dialog)
-
-
+        self.zadania2_ui.setupUi(self.zadania2_dialog, self) # Перердаем ссылку на основной диалог
         self.zadania2_dialog.exec_() # Показываем новое окно
 
     def open_zadania3_window(self):
         self.zadania3_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania3_ui = ZadaniaDialog3()
-        self.zadania3_ui.setupUi(self.zadania3_dialog)
-
-
+        self.zadania3_ui.setupUi(self.zadania3_dialog, self) # Перердаем ссылку на основной диалог
         self.zadania3_dialog.exec_() # Показываем новое окно
 
     def open_zadania4_window(self):
         self.zadania4_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania4_ui = ZadaniaDialog4()
         self.zadania4_ui.setupUi(self.zadania4_dialog)
-
-
         self.zadania4_dialog.exec_() # Показываем новое окно
 
     def show_exit_dialog(self):
