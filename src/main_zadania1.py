@@ -171,7 +171,6 @@ class Ui_Dialog(object):
         self.pushButton.clicked.connect(self.exit_application)
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
         self.pushButton_2.setGeometry(QtCore.QRect(630, 530, 151, 41))
-        self.pushButton_2.clicked.connect(self.open_next_question)  # Подключаем кнопку к функции
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(Dialog)
         self.pushButton_3.setGeometry(QtCore.QRect(20, 530, 161, 41))
