@@ -4,16 +4,19 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(500, 100)
+        Dialog.setFixedSize(500, 100)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
+        
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(10, 10, 491, 41))
         font = QtGui.QFont()
         self.label.setFont(font)
         self.label.setObjectName("label")
+        
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(280, 60, 161, 27))
         self.pushButton.setObjectName("pushButton")
+        
         self.pushButton_2 = QtWidgets.QPushButton(Dialog)
         self.pushButton_2.setGeometry(QtCore.QRect(50, 60, 151, 27))
         self.pushButton_2.setObjectName("pushButton_2")
