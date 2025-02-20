@@ -61,6 +61,7 @@ class LessonsSystem(QMainWindow):
         lectures_ui = LecturesDialog()
         lectures_ui.setupUi(lectures_dialog)
         lectures_dialog.exec_()  # Показываем окно лекций
+        
 
 
 if __name__ == "__main__":

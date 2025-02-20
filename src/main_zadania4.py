@@ -6,8 +6,10 @@ from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog):
+    def setupUi(self, Dialog, main_dialog):
         Dialog.setObjectName("Dialog")
+        self.dialog = Dialog  # Сохраняем ссылку на диалог
+        self.main_dialog = main_dialog  # Сохраняем ссылку на основной диалог
         Dialog.resize(800, 800)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
         self.frame_4 = QtWidgets.QFrame(Dialog)
@@ -151,12 +153,9 @@ class Ui_Dialog(object):
         self.label_26.setFont(font)
         self.label_26.setObjectName("label_26")
         self.pushButton = QtWidgets.QPushButton(Dialog)
-        self.pushButton.setGeometry(QtCore.QRect(490, 750, 171, 41))
+        self.pushButton.setGeometry(QtCore.QRect(310, 740, 171, 41))
         self.pushButton.clicked.connect(Dialog.reject)  # Закрываем текущее окно
         self.pushButton.setObjectName("pushButton")
-        self.pushButton_3 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_3.setGeometry(QtCore.QRect(150, 750, 161, 41))
-        self.pushButton_3.setObjectName("pushButton_3")
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -200,7 +199,6 @@ class Ui_Dialog(object):
         self.label_25.setText(_translate("Dialog", "5Б"))
         self.label_26.setText(_translate("Dialog", "4. Работа с кодом"))
         self.pushButton.setText(_translate("Dialog", "Вернуться на главную"))
-        self.pushButton_3.setText(_translate("Dialog", "Предыдущий вопрос"))
 
 
 if __name__ == "__main__":

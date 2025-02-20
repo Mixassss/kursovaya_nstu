@@ -169,12 +169,6 @@ class Ui_Dialog(object):
         self.pushButton.setGeometry(QtCore.QRect(320, 530, 171, 41))
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.exit_application)
-        self.pushButton_2 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_2.setGeometry(QtCore.QRect(630, 530, 151, 41))
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.pushButton_3 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_3.setGeometry(QtCore.QRect(20, 530, 161, 41))
-        self.pushButton_3.setObjectName("pushButton_3")
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -182,16 +176,6 @@ class Ui_Dialog(object):
     def exit_application(self):
         # Закрываем диалог
         self.dialog.close()
-
-    def open_next_question(self):
-        # Закрываем текущее окно
-        self.dialog.close()
-        
-        # Открываем новое окно с вопросами
-        self.main_dialog = QtWidgets.QDialog()
-        self.main_ui = MainZadania2Dialog()
-        self.main_ui.setupUi(self.main_dialog)
-        self.main_dialog.exec_()  # Запускаем новое диалоговое окно
 
     def check_answers(self):
         score = 0
@@ -248,7 +232,7 @@ class Ui_Dialog(object):
         self.result_ui = dialog_class()
         self.result_ui.setupUi(self.result_dialog)
         self.result_dialog.exec_()
-
+    
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Обучающая система"))
@@ -276,8 +260,6 @@ class Ui_Dialog(object):
         self.label_12.setText(_translate("Dialog", "2Б"))
         self.label_2.setText(_translate("Dialog", "1. Вопросы легкой сложности"))
         self.pushButton.setText(_translate("Dialog", "Вернуться на главную"))
-        self.pushButton_2.setText(_translate("Dialog", "Следующий вопрос"))
-        self.pushButton_3.setText(_translate("Dialog", "Предыдущая теория"))
 
 
 if __name__ == "__main__":

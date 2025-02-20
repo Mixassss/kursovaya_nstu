@@ -258,7 +258,7 @@ class Ui_Dialog(object):
     def open_zadania4_window(self):
         self.zadania4_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania4_ui = ZadaniaDialog4()
-        self.zadania4_ui.setupUi(self.zadania4_dialog)
+        self.zadania4_ui.setupUi(self.zadania4_dialog, self)
         self.zadania4_dialog.exec_() # Показываем новое окно
 
     def show_exit_dialog(self):

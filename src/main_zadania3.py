@@ -4,7 +4,6 @@ from four_ball import Ui_Dialog as FourBallDialog
 from two_ball_bad import Ui_Dialog as TwoBallBadDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
-from main_zadania4 import Ui_Dialog as MainZadania4Dialog  # Импортируем класс из main_zadania4.py
 
 
 class Ui_Dialog(object):
@@ -229,17 +228,10 @@ class Ui_Dialog(object):
         font.setWeight(75)
         self.label_26.setFont(font)
         self.label_26.setObjectName("label_26")
-        self.pushButton_2 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_2.setGeometry(QtCore.QRect(40, 690, 161, 41))
-        self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(330, 690, 171, 41))
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.exit_application)
-        self.pushButton_5 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_5.setGeometry(QtCore.QRect(610, 690, 151, 41))
-        self.pushButton_5.setObjectName("pushButton_5")
-        self.pushButton_5.clicked.connect(self.open_next_question)  # Подключаем кнопку к функции
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -247,16 +239,6 @@ class Ui_Dialog(object):
     def exit_application(self):
         # Закрываем диалог
         self.dialog.close()
-
-    def open_next_question(self):
-        # Закрываем текущее окно
-        self.dialog.close()
-        
-        # Открываем новое окно с вопросами
-        self.main_dialog = QtWidgets.QDialog()
-        self.main_ui = MainZadania4Dialog()
-        self.main_ui.setupUi(self.main_dialog)
-        self.main_dialog.exec_()  # Запускаем новое диалоговое окно
 
     def check_answers(self):
         score = 0
@@ -356,9 +338,7 @@ class Ui_Dialog(object):
         self.label_24.setText(_translate("Dialog", "Условие заданий"))
         self.label_25.setText(_translate("Dialog", "6Б"))
         self.label_26.setText(_translate("Dialog", "3. Вопросы высокой сложности"))
-        self.pushButton_2.setText(_translate("Dialog", "Предыдущий вопрос"))
         self.pushButton.setText(_translate("Dialog", "Вернуться на главную"))
-        self.pushButton_5.setText(_translate("Dialog", "Следующий вопрос"))
 
 
 if __name__ == "__main__":

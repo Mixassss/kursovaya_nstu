@@ -5,10 +5,7 @@ from two_ball import Ui_Dialog as TwoBallDialog
 from three_ball import Ui_Dialog as ThreeBallDialog
 from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
-from main_zadania3 import Ui_Dialog as MainZadania3Dialog  # Импортируем класс из main_zadania3.py
 
-def some_function():
-    from main_zadania1 import Ui_Dialog as MainZadania1Dialog  # Импортируем внутри функции
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog, main_dialog):
@@ -21,13 +18,6 @@ class Ui_Dialog(object):
         self.pushButton.setGeometry(QtCore.QRect(320, 660, 171, 41))
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.exit_application)
-        self.pushButton_5 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_5.setGeometry(QtCore.QRect(620, 660, 151, 41))
-        self.pushButton_5.setObjectName("pushButton_5")
-        self.pushButton_5.clicked.connect(self.open_next_question)  # Подключаем кнопку к функции
-        self.pushButton_2 = QtWidgets.QPushButton(Dialog)
-        self.pushButton_2.setGeometry(QtCore.QRect(40, 660, 161, 41))
-        self.pushButton_2.setObjectName("pushButton_2")
         self.frame_4 = QtWidgets.QFrame(Dialog)
         self.frame_4.setGeometry(QtCore.QRect(0, 0, 801, 641))
         self.frame_4.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -246,16 +236,6 @@ class Ui_Dialog(object):
         # Закрываем диалог
         self.dialog.close()
 
-    def open_next_question(self):
-        # Закрываем текущее окно
-        self.dialog.close()
-        
-        # Открываем новое окно с вопросами
-        self.main_dialog = QtWidgets.QDialog()
-        self.main_ui = MainZadania3Dialog()
-        self.main_ui.setupUi(self.main_dialog)
-        self.main_dialog.exec_()  # Запускаем новое диалоговое окно
-
     def check_answers(self):
         score = 0
         # Проверяем первый вопрос
@@ -336,8 +316,6 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Обучающая система"))
         self.pushButton.setText(_translate("Dialog", "Вернуться на главную"))
-        self.pushButton_5.setText(_translate("Dialog", "Следующий вопрос"))
-        self.pushButton_2.setText(_translate("Dialog", "Предыдущий вопрос"))
         self.label_14.setText(_translate("Dialog", "1.  Какое из следующих утверждений о локальных и глобальных именах верно?"))
         self.label_18.setText(_translate("Dialog", "2.  Какой из следующих операторов позволяет гарантировать, что тело цикла \n"
 "выполнится хотя бы один раз?"))
