@@ -1,15 +1,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
-from one_ball import Ui_Dialog as OneBallDialog
-from max_ball import Ui_Dialog as MaxBallDialog
-from zero_ball import Ui_Dialog as ZeroBallDialog
-from main_zadania2 import Ui_Dialog as MainZadania2Dialog
 
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog, main_dialog):
+    def setupUi(self, Dialog):
         self.dialog = Dialog  # Сохраняем ссылку на диалог
-        self.main_dialog = main_dialog  # Сохраняем ссылку на основной диалог
         Dialog.setObjectName("Dialog")
         Dialog.resize(800, 600)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
@@ -206,9 +201,6 @@ class Ui_Dialog(object):
             elif self.AnswerD_2.isChecked():
                 self.AnswerD_2.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
 
-        # Обновляем значение в основном диалоге
-        self.main_dialog.two_max_balls_ez.setText(f"{score}/2")  # Обновляем значение
-
         # Блокируем радиокнопки после выбора ответа
         self.AnswerA.setEnabled(False)
         self.AnswerB.setEnabled(False)
@@ -218,20 +210,6 @@ class Ui_Dialog(object):
         self.AnswerB_2.setEnabled(False)
         self.AnswerC_2.setEnabled(False)
         self.AnswerD_2.setEnabled(False)
-
-        # Открываем соответствующее окно в зависимости от набранных баллов
-        if score == 2:
-            self.show_result(MaxBallDialog)
-        elif score == 1:
-            self.show_result(OneBallDialog)
-        else:
-            self.show_result(ZeroBallDialog)
-
-    def show_result(self, dialog_class):
-        self.result_dialog = QtWidgets.QDialog()
-        self.result_ui = dialog_class()
-        self.result_ui.setupUi(self.result_dialog)
-        self.result_dialog.exec_()
     
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

@@ -145,78 +145,6 @@ class Ui_Dialog(object):
         self.hard_question.setFont(font)
         self.hard_question.setObjectName("hard_question")
         self.hard_question.clicked.connect(self.open_zadania3_window) # Подключаем кнопку "Основы программирования. Вопросы средней сложности" к методу
-        self.label_25 = QtWidgets.QLabel(self.frame_question)
-        self.label_25.setGeometry(QtCore.QRect(750, 130, 31, 21))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_25.setFont(font)
-        self.label_25.setObjectName("label_25")
-        self.label_26 = QtWidgets.QLabel(self.frame_question)
-        self.label_26.setGeometry(QtCore.QRect(750, 80, 31, 31))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_26.setFont(font)
-        self.label_26.setObjectName("label_26")
-        self.label_27 = QtWidgets.QLabel(self.frame_question)
-        self.label_27.setGeometry(QtCore.QRect(750, 40, 31, 31))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_27.setFont(font)
-        self.label_27.setObjectName("label_27")
-        self.label_28 = QtWidgets.QLabel(self.frame_question)
-        self.label_28.setGeometry(QtCore.QRect(750, 0, 31, 31))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_28.setFont(font)
-        self.label_28.setObjectName("label_28")
-        self.five_max_balls_code = QtWidgets.QLabel(self.frame_question)
-        self.five_max_balls_code.setGeometry(QtCore.QRect(730, 120, 21, 41))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.five_max_balls_code.setFont(font)
-        self.five_max_balls_code.setObjectName("five_max_balls_code")
-        self.six_max_balls_hard = QtWidgets.QLabel(self.frame_question)
-        self.six_max_balls_hard.setGeometry(QtCore.QRect(730, 80, 21, 31))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.six_max_balls_hard.setFont(font)
-        self.six_max_balls_hard.setObjectName("six_max_balls_hard")
-        self.four_max_balls_middle = QtWidgets.QLabel(self.frame_question)
-        self.four_max_balls_middle.setGeometry(QtCore.QRect(730, 40, 21, 31))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.four_max_balls_middle.setFont(font)
-        self.four_max_balls_middle.setObjectName("four_max_balls_middle")
-        self.two_max_balls_ez = QtWidgets.QLabel(self.frame_question)
-        self.two_max_balls_ez.setGeometry(QtCore.QRect(730, 0, 21, 31))
-        font = QtGui.QFont()
-        font.setFamily("Serif")
-        font.setPointSize(20)
-        font.setBold(True)
-        font.setWeight(75)
-        self.two_max_balls_ez.setFont(font)
-        self.two_max_balls_ez.setObjectName("two_max_balls_ez")
         self.frame_zadania = QtWidgets.QFrame(Dialog)
         self.frame_zadania.setGeometry(QtCore.QRect(0, 210, 801, 41))
         self.frame_zadania.setStyleSheet("background-color: rgb(224, 27, 36);")
@@ -239,26 +167,26 @@ class Ui_Dialog(object):
     def open_zadania_window(self):
         self.zadania_dialog = QtWidgets.QDialog()  # Создаем новое окно для заданий
         self.zadania_ui = ZadaniaDialog1()
-        self.zadania_ui.setupUi(self.zadania_dialog, self)  # Передаем ссылку на основной диалог
+        self.zadania_ui.setupUi(self.zadania_dialog)  # Передаем ссылку на основной диалог
         self.zadania_dialog.exec_()  # Показываем новое окно
 
 
     def open_zadania2_window(self):
         self.zadania2_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania2_ui = ZadaniaDialog2()
-        self.zadania2_ui.setupUi(self.zadania2_dialog, self) # Перердаем ссылку на основной диалог
+        self.zadania2_ui.setupUi(self.zadania2_dialog) # Перердаем ссылку на основной диалог
         self.zadania2_dialog.exec_() # Показываем новое окно
 
     def open_zadania3_window(self):
         self.zadania3_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania3_ui = ZadaniaDialog3()
-        self.zadania3_ui.setupUi(self.zadania3_dialog, self) # Перердаем ссылку на основной диалог
+        self.zadania3_ui.setupUi(self.zadania3_dialog) # Перердаем ссылку на основной диалог
         self.zadania3_dialog.exec_() # Показываем новое окно
 
     def open_zadania4_window(self):
         self.zadania4_dialog = QtWidgets.QDialog() # Создаем новое окно для заданий
         self.zadania4_ui = ZadaniaDialog4()
-        self.zadania4_ui.setupUi(self.zadania4_dialog, self)
+        self.zadania4_ui.setupUi(self.zadania4_dialog)
         self.zadania4_dialog.exec_() # Показываем новое окно
 
     def show_exit_dialog(self):
@@ -291,14 +219,6 @@ class Ui_Dialog(object):
         self.easy_question.setText(_translate("Dialog", "Основы программирования. Вопросы легкой сложности"))
         self.middle_question.setText(_translate("Dialog", "Основы программирования. Вопросы средней сложности"))
         self.hard_question.setText(_translate("Dialog", "Основы программирования. Вопросы высокой сложности"))
-        self.label_25.setText(_translate("Dialog", "/5"))
-        self.label_26.setText(_translate("Dialog", "/6"))
-        self.label_27.setText(_translate("Dialog", "/4"))
-        self.label_28.setText(_translate("Dialog", "/2"))
-        self.five_max_balls_code.setText(_translate("Dialog", "0"))
-        self.six_max_balls_hard.setText(_translate("Dialog", "0"))
-        self.four_max_balls_middle.setText(_translate("Dialog", "0"))
-        self.two_max_balls_ez.setText(_translate("Dialog", "0"))
         self.zadanie.setText(_translate("Dialog", "Задания"))
 
 

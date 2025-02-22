@@ -7,9 +7,8 @@ from zero_ball import Ui_Dialog as ZeroBallDialog
 
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog, main_dialog):
+    def setupUi(self, Dialog):
         self.dialog = Dialog  # Сохраняем ссылку на диалог
-        self.main_dialog = main_dialog  # Сохраняем ссылку на основной диалог
         Dialog.setObjectName("Dialog")
         Dialog.resize(800, 750)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
@@ -282,9 +281,6 @@ class Ui_Dialog(object):
             elif self.AnswerC_3.isChecked():
                 self.AnswerC_3.setStyleSheet("color: rgb(224, 27, 36); background-color: rgb(255, 0, 0);")
 
-        # Обновляем значение в основном диалоге
-        self.main_dialog.six_max_balls_hard.setText(f"{score}/6")  # Обновляем значение
-
         # Блокируем радиокнопки после выбора ответа
         self.AnswerA.setEnabled(False)
         self.AnswerB.setEnabled(False)
@@ -298,22 +294,6 @@ class Ui_Dialog(object):
         self.AnswerB_3.setEnabled(False)
         self.AnswerC_3.setEnabled(False)
         self.AnswerD_3.setEnabled(False)
-
-        # Открываем соответствующее окно в зависимости от набранных баллов
-        if score == 6:
-            self.show_result(MaxBallDialog)
-        elif score == 4:
-            self.show_result(FourBallDialog)
-        elif score == 2:
-            self.show_result(TwoBallBadDialog)
-        else:
-            self.show_result(ZeroBallDialog)
-
-    def show_result(self, dialog_class):
-        self.result_dialog = QtWidgets.QDialog()
-        self.result_ui = dialog_class()
-        self.result_ui.setupUi(self.result_dialog)
-        self.result_dialog.exec_()
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

@@ -2,6 +2,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_Dialog(object):
+    def __init__(self, main_dialog):
+        self.main_dialog = main_dialog
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.setFixedSize(511, 100)
@@ -15,11 +17,25 @@ class Ui_Dialog(object):
         self.pushButton_2.setGeometry(QtCore.QRect(280, 60, 151, 27))
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton = QtWidgets.QPushButton(Dialog)
+        self.pushButton_2.clicked.connect(self.retry_test)
         self.pushButton.setGeometry(QtCore.QRect(50, 60, 161, 27))
         self.pushButton.setObjectName("pushButton")
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retry_test(self):
+        # Сбрасываем ответы в главном диалоге
+        self.main_dialog.reset_answers()
+
+        # Закрываем текущее окно
+        self.dialog.close()
+
+        # Открываем диалог снова для нового прохождения
+        self.result_dialog = QtWidgets.QDialog()
+        self.result_ui = self.__class__(self.main_dialog)  # Перезапускаем тот же диалог
+        self.result_ui.setupUi(self.result_dialog)
+        self.result_dialog.exec_()
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

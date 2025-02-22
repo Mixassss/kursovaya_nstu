@@ -6,10 +6,9 @@ from max_ball import Ui_Dialog as MaxBallDialog
 from zero_ball import Ui_Dialog as ZeroBallDialog
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog, main_dialog):
+    def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         self.dialog = Dialog  # Сохраняем ссылку на диалог
-        self.main_dialog = main_dialog  # Сохраняем ссылку на основной диалог
         Dialog.resize(800, 800)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
         self.frame_4 = QtWidgets.QFrame(Dialog)
