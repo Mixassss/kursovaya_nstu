@@ -6,7 +6,7 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         self.dialog = Dialog  # Сохраняем ссылку на диалог
         Dialog.setObjectName("Dialog")
-        Dialog.resize(800, 600)
+        Dialog.setFixedSize(800, 600)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
         self.frame_3 = QtWidgets.QFrame(Dialog)
         self.frame_3.setGeometry(QtCore.QRect(0, 0, 801, 491))
@@ -38,6 +38,7 @@ class Ui_Dialog(object):
         self.pushButton_4.setGeometry(QtCore.QRect(680, 330, 87, 27))
         self.pushButton_4.setStyleSheet("background-color: rgb(28, 113, 216);")
         self.pushButton_4.setObjectName("pushButton_4")
+        self.pushButton_4.setEnabled(False)  # Деактивируем кнопку изначально
         self.pushButton_4.clicked.connect(self.check_answers)  # Подключаем кнопку к функции проверки ответов
         self.groupBox = QtWidgets.QGroupBox(self.frame_2)
         self.groupBox.setGeometry(QtCore.QRect(10, 40, 491, 111))
@@ -164,9 +165,37 @@ class Ui_Dialog(object):
         self.pushButton.setGeometry(QtCore.QRect(320, 530, 171, 41))
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.exit_application)
+        # Подключаем радиокнопки к методу проверки
+        self.AnswerA.toggled.connect(self.update_submit_button_state)
+        self.AnswerB.toggled.connect(self.update_submit_button_state)
+        self.AnswerC.toggled.connect(self.update_submit_button_state)
+        self.AnswerD.toggled.connect(self.update_submit_button_state)
+        self.AnswerA_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerB_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerC_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerD_2.toggled.connect(self.update_submit_button_state)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def update_submit_button_state(self):
+        # Проверяем, выбраны ли ответы на оба вопроса
+        first_question_answered = (
+            self.AnswerA.isChecked() or
+            self.AnswerB.isChecked() or
+            self.AnswerC.isChecked() or
+            self.AnswerD.isChecked()
+        )
+        
+        second_question_answered = (
+            self.AnswerA_2.isChecked() or
+            self.AnswerB_2.isChecked() or
+            self.AnswerC_2.isChecked() or
+            self.AnswerD_2.isChecked()
+        )
+        
+        # Активируем кнопку, если оба вопроса отвечены
+        self.pushButton_4.setEnabled(first_question_answered and second_question_answered)
 
     def exit_application(self):
         # Закрываем диалог
@@ -210,6 +239,10 @@ class Ui_Dialog(object):
         self.AnswerB_2.setEnabled(False)
         self.AnswerC_2.setEnabled(False)
         self.AnswerD_2.setEnabled(False)
+
+        # Деактивируем кнопку "Ответить" после проверки
+        self.pushButton_4.setEnabled(False)
+
     
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

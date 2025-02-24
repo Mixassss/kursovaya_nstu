@@ -6,7 +6,7 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         self.dialog = Dialog  # Сохраняем ссылку на диалог
         Dialog.setObjectName("Dialog")
-        Dialog.resize(800, 720)
+        Dialog.setFixedSize(800, 720)
         Dialog.setStyleSheet("background-color: rgb(36, 31, 49);")
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(320, 660, 171, 41))
@@ -40,6 +40,7 @@ class Ui_Dialog(object):
         self.label_18.setObjectName("label_18")
         self.pushButton_6 = QtWidgets.QPushButton(self.frame_5)
         self.pushButton_6.setGeometry(QtCore.QRect(670, 470, 87, 27))
+        self.pushButton_6.setEnabled(False)  # Деактивируем кнопку изначально
         self.pushButton_6.clicked.connect(self.check_answers)  # Подключаем кнопку к функции проверки ответов
         self.pushButton_6.setStyleSheet("background-color: rgb(28, 113, 216);")
         self.pushButton_6.setObjectName("pushButton_6")
@@ -222,9 +223,48 @@ class Ui_Dialog(object):
         font.setWeight(75)
         self.label_26.setFont(font)
         self.label_26.setObjectName("label_26")
+        # Подключаем радиокнопки к методу проверки
+        self.AnswerA.toggled.connect(self.update_submit_button_state)
+        self.AnswerB.toggled.connect(self.update_submit_button_state)
+        self.AnswerC.toggled.connect(self.update_submit_button_state)
+        self.AnswerD.toggled.connect(self.update_submit_button_state)
+        self.AnswerA_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerB_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerC_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerD_2.toggled.connect(self.update_submit_button_state)
+        self.AnswerA_3.toggled.connect(self.update_submit_button_state)
+        self.AnswerB_3.toggled.connect(self.update_submit_button_state)
+        self.AnswerC_3.toggled.connect(self.update_submit_button_state)
+        self.AnswerD_3.toggled.connect(self.update_submit_button_state)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def update_submit_button_state(self):
+        # Проверяем, выбраны ли ответы на оба вопроса
+        first_question_answered = (
+            self.AnswerA.isChecked() or
+            self.AnswerB.isChecked() or
+            self.AnswerC.isChecked() or
+            self.AnswerD.isChecked()
+        )
+        
+        second_question_answered = (
+            self.AnswerA_2.isChecked() or
+            self.AnswerB_2.isChecked() or
+            self.AnswerC_2.isChecked() or
+            self.AnswerD_2.isChecked()
+        )
+
+        third_question_answered = (
+            self.AnswerA_3.isChecked() or
+            self.AnswerB_3.isChecked() or
+            self.AnswerC_3.isChecked() or
+            self.AnswerD_3.isChecked()
+        )
+        
+        # Активируем кнопку, если оба вопроса отвечены
+        self.pushButton_6.setEnabled(first_question_answered and second_question_answered and third_question_answered)
 
     def exit_application(self):
         # Закрываем диалог
@@ -284,6 +324,10 @@ class Ui_Dialog(object):
         self.AnswerB_3.setEnabled(False)
         self.AnswerC_3.setEnabled(False)
         self.AnswerD_3.setEnabled(False)
+
+        # Деактивируем кнопку "Ответить" после проверки
+        self.pushButton_6.setEnabled(False)
+
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate

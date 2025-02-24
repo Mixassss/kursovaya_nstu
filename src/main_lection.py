@@ -4,6 +4,9 @@ from main_zadania1 import Ui_Dialog as ZadaniaDialog1  # Импортируем 
 from main_zadania2 import Ui_Dialog as ZadaniaDialog2  # Импортируем класс из main_zadania2
 from main_zadania3 import Ui_Dialog as ZadaniaDialog3  # Импортируем класс из main_zadania3
 from main_zadania4 import Ui_Dialog as ZadaniaDialog4  # Импортируем класс из main_zadania4
+from lection1 import Ui_Dialog as Lection1Dialog  # Импортируем класс из lection1
+from lection2 import Ui_Dialog as Lection2Dialog  # Импортируем класс из lection2
+from lection2 import Ui_Dialog as Lection3Dialog  # Импортируем класс из lection3
 
 
 class Ui_Dialog(object):
@@ -41,6 +44,7 @@ class Ui_Dialog(object):
         self.frame_window_lection.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_window_lection.setObjectName("frame_window_lection")
         self.Lection1 = QtWidgets.QCommandLinkButton(self.frame_window_lection)
+        self.Lection1.clicked.connect(self.open_lecion1_window)  # Подключаем кнопку к методу
         self.Lection1.setGeometry(QtCore.QRect(10, 10, 371, 41))
         font = QtGui.QFont()
         font.setFamily("Utopia")
@@ -49,6 +53,7 @@ class Ui_Dialog(object):
         self.Lection1.setObjectName("Lection1")
         self.Lection2 = QtWidgets.QCommandLinkButton(self.frame_window_lection)
         self.Lection2.setGeometry(QtCore.QRect(10, 50, 691, 41))
+        self.Lection2.clicked.connect(self.open_lecion2_window)  # Подключаем кнопку к методу
         font = QtGui.QFont()
         font.setFamily("Utopia")
         font.setPointSize(13)
@@ -61,6 +66,7 @@ class Ui_Dialog(object):
         font.setPointSize(13)
         self.Lection3.setFont(font)
         self.Lection3.setObjectName("Lection3")
+        self.Lection3.clicked.connect(self.open_lecion3_window)  # Подключаем кнопку к методу
         self.frame_itogtest = QtWidgets.QFrame(Dialog)
         self.frame_itogtest.setGeometry(QtCore.QRect(0, 420, 801, 201))
         self.frame_itogtest.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -188,6 +194,24 @@ class Ui_Dialog(object):
         self.zadania4_ui = ZadaniaDialog4()
         self.zadania4_ui.setupUi(self.zadania4_dialog)
         self.zadania4_dialog.exec_() # Показываем новое окно
+
+    def open_lecion1_window(self):
+        self.lecion1_dialog = QtWidgets.QDialog()  # Создаем новое окно для лекции 1
+        self.lecion1_ui = Lection1Dialog()
+        self.lecion1_ui.setupUi(self.lecion1_dialog)  # Передаем ссылку на основное диалоговое окно
+        self.lecion1_dialog.exec_()  # Показываем новое окно
+
+    def open_lecion2_window(self):
+        self.lecion2_dialog = QtWidgets.QDialog()  # Создаем новое окно для лекции 2
+        self.lecion2_ui = Lection2Dialog()
+        self.lecion2_ui.setupUi(self.lecion2_dialog)  # Передаем ссылку на основное диалоговое окно
+        self.lecion2_dialog.exec_()  # Показываем новое окно
+
+    def open_lecion3_window(self):
+        self.lecion3_dialog = QtWidgets.QDialog()  # Создаем новое окно для лекции 2
+        self.lecion3_ui = Lection3Dialog()
+        self.lecion3_ui.setupUi(self.lecion3_dialog)  # Передаем ссылку на основное диалоговое окно
+        self.lecion3_dialog.exec_()  # Показываем новое окно
 
     def show_exit_dialog(self):
         dialog = QtWidgets.QDialog()
