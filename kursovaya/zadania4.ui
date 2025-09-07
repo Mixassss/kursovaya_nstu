@@ -455,7 +455,7 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>490</x>
+     <x>300</x>
      <y>750</y>
      <width>171</width>
      <height>41</height>
@@ -468,14 +468,27 @@
   <widget class="QPushButton" name="pushButton_3">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>30</x>
      <y>750</y>
      <width>161</width>
      <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Предыдущий вопрос</string>
+    <string>Вернуться к теории</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_4">
+   <property name="geometry">
+    <rect>
+     <x>590</x>
+     <y>750</y>
+     <width>161</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Пройти ещё раз</string>
    </property>
   </widget>
  </widget>

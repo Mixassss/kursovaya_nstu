@@ -7,6 +7,7 @@
 #include "test1.h" // Подключаем класс test1
 #include "test2.h" // Подключаем класс test2
 #include "test3.h" // Подключаем класс test3
+#include "dialog_window_exit.h"
 
 
 main_lection::main_lection(QWidget *parent)
@@ -34,6 +35,11 @@ main_lection::main_lection(QWidget *parent)
 
     // Подключаем сигнал clicked() кнопки "Основы программирования. Работа с кодом"
     connect(ui->Lection3, &QCommandLinkButton::clicked, this, &main_lection::on_lection3_clicked);
+
+    connect(ui->back, &QPushButton::clicked, this, &main_lection::on_backButton_clicked);
+
+    // Подключаем сигнал clicked() кнопки "Выход из системы" к слоту
+    connect(ui->quit_system, &QPushButton::clicked, this, &main_lection::on_exitButton_clicked);
 }
 
 main_lection::~main_lection() {
@@ -73,4 +79,16 @@ void main_lection::on_lection2_clicked() {
 void main_lection::on_lection3_clicked() {
     test3 *zadaniaWindow = new test3(this);
     zadaniaWindow->exec(); // Открываем test3 как модальное окно
+}
+
+void main_lection::on_backButton_clicked() { // Реализация слота для кнопки "Назад"
+    reject(); // Закрывает диалог с результатом "Rejected"
+}
+
+// Новый слот для обработки выхода
+void main_lection::on_exitButton_clicked() {
+    dialog_window_exit exitDialog(this); // Создаем экземпляр диалогового окна выхода
+    if (exitDialog.exec() == QDialog::Accepted) {
+        qApp->quit(); // Закрываем приложение, если нажата кнопка "Да"
+    }
 }

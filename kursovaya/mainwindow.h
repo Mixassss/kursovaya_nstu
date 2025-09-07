@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "autorization.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,6 +19,7 @@ public:
 
 private slots:
     void on_loginButton_clicked(); // Слот для обработки нажатия кнопки
+    void on_exitButton_clicked();
 
 private:
     Ui::MainWindow *ui;

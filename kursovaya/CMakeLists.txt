@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
 project(kursovaya LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
+find_package(PostgreSQL REQUIRED)
 
 qt_standard_project_setup()
 
@@ -25,6 +26,30 @@ qt_add_executable(kursovaya
     test1.h test1.cpp test1.ui
     test2.h test2.cpp test2.ui
     test3.h test3.cpp test3.ui
+    window_admin.h window_admin.cpp window_admin.ui
+    all_lection.h all_lection.cpp all_lection.ui
+    lec1_test1.h lec1_test1.cpp lec1_test1.ui
+    lec1_test2.h lec1_test2.cpp lec1_test2.ui
+    lec1_test3.h lec1_test3.cpp lec1_test3.ui
+    lec1_test4.h lec1_test4.cpp lec1_test4.ui
+    all_lection2.h all_lection2.cpp all_lection2.ui
+    lec2_test1.h lec2_test1.cpp lec2_test1.ui
+    lec2_test2.h lec2_test2.cpp lec2_test2.ui
+    lec2_test3.h lec2_test3.cpp lec2_test3.ui
+    lec2_test4.h lec2_test4.cpp lec2_test4.ui
+    all_lection3.h all_lection3.cpp all_lection3.ui
+    lec3_test1.h lec3_test1.cpp lec3_test1.ui
+    lec3_test2.h lec3_test2.cpp lec3_test2.ui
+    lec3_test3.h lec3_test3.cpp lec3_test3.ui
+    lec3_test4.h lec3_test4.cpp lec3_test4.ui
+    database.h database.cpp
+    add_users.h add_users.cpp add_users.ui
+    delete_users.h delete_users.cpp delete_users.ui
+
+
+
+
+
 
 
 )
@@ -33,6 +58,8 @@ target_link_libraries(kursovaya
     PRIVATE
     Qt::Core
     Qt::Widgets
+    Qt::Sql
+    PostgreSQL::PostgreSQL
 )
 
 include(GNUInstallDirs)

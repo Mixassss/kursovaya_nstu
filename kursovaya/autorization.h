@@ -2,6 +2,7 @@
 #define AUTORIZATION_H
 
 #include <QDialog>
+#include "database.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -14,16 +15,19 @@ class Dialog : public QDialog
     Q_OBJECT
 
 public:
-    Dialog(QWidget *parent = nullptr);
+    QString getUserPosition() const;
+    explicit Dialog(QWidget *parent = nullptr);
     ~Dialog();
 
 private slots:
-    void on_loginButton_clicked(); // Слот для обработки нажатия кнопки "Войти"
-    void on_backButton_clicked();   // Слот для обработки нажатия кнопки "Назад"
-    void on_inputChanged();         // Слот для обработки изменений в полях ввода
+    void on_loginButton_clicked();
+    void on_backButton_clicked();
+    void on_inputChanged();
 
 private:
+    QString userPosition;
     Ui::Dialog *ui;
+    Database *db;
 };
 
 #endif // AUTORIZATION_H

@@ -19,7 +19,7 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>320</x>
+     <x>310</x>
      <y>660</y>
      <width>171</width>
      <height>41</height>
@@ -32,7 +32,7 @@
   <widget class="QPushButton" name="pushButton_5">
    <property name="geometry">
     <rect>
-     <x>620</x>
+     <x>600</x>
      <y>660</y>
      <width>151</width>
      <height>41</height>
@@ -52,7 +52,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Предыдущий вопрос</string>
+    <string>Пройти ещё раз</string>
    </property>
   </widget>
   <widget class="QFrame" name="frame_4">
@@ -65,10 +65,10 @@
     </rect>
    </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::Shape::StyledPanel</enum>
    </property>
    <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
+    <enum>QFrame::Shadow::Raised</enum>
    </property>
    <widget class="QFrame" name="frame_5">
     <property name="geometry">
@@ -86,10 +86,10 @@
      <string notr="true">background-color: rgb(119, 118, 123);</string>
     </property>
     <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+     <enum>QFrame::Shape::StyledPanel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Shadow::Raised</enum>
     </property>
     <widget class="QLabel" name="label_14">
      <property name="geometry">
@@ -259,7 +259,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -275,7 +275,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string>RadioButton</string>
@@ -291,7 +291,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string>RadioButton</string>
@@ -307,7 +307,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -408,7 +408,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string>RadioButton</string>
@@ -424,7 +424,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string>RadioButton</string>
@@ -440,7 +440,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string>RadioButton</string>
@@ -456,7 +456,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -557,7 +557,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -573,7 +573,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -589,7 +589,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -605,7 +605,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(38, 162, 105);</string>
+       <string notr="true">color: rgb(224, 27, 36);</string>
       </property>
       <property name="text">
        <string/>
@@ -626,10 +626,10 @@
      <string notr="true">background-color: rgb(224, 27, 36);</string>
     </property>
     <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+     <enum>QFrame::Shape::StyledPanel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Shadow::Raised</enum>
     </property>
     <widget class="QLabel" name="label_24">
      <property name="geometry">
@@ -644,7 +644,6 @@
       <font>
        <family>LM Roman 8</family>
        <pointsize>15</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -665,7 +664,6 @@
       <font>
        <family>Serif</family>
        <pointsize>20</pointsize>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -687,7 +685,6 @@
      <font>
       <family>LM Roman 8</family>
       <pointsize>20</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
@@ -695,6 +692,19 @@
      <string>2. Вопросы средней сложности</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="pushButton_3">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>660</y>
+     <width>161</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Вернуться к теории</string>
+   </property>
   </widget>
  </widget>
  <resources/>

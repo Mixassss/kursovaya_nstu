@@ -2,7 +2,8 @@
 #include "ui_mainwindow.h"
 #include "autorization.h"
 #include "main_lection.h"
-#include "dialog_window_exit.h" // Добавьте этот заголовочный файл
+#include "window_admin.h"
+#include "dialog_window_exit.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFrame>
@@ -66,9 +67,21 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_loginButton_clicked() {
     Dialog authDialog(this); // Создаем экземпляр диалогового окна авторизации
-    if (authDialog.exec() == QDialog::Accepted) { // Используем exec() для модального окна
-        main_lection lectionWindow(this); // Создаем экземпляр главного окна лекции
-        lectionWindow.exec(); // Открываем main_lection как модальное окно
+    if (authDialog.exec() == QDialog::Accepted) {
+        // Получаем позицию пользователя из диалога авторизации
+        QString position = authDialog.getUserPosition();
+
+        if (position == "admin") {
+            // Открываем окно администратора
+            window_admin *adminWindow = new window_admin(this);
+            adminWindow->setAttribute(Qt::WA_DeleteOnClose);
+            adminWindow->show();
+        } else {
+            // Для teacher/student открываем main_lection
+            main_lection *lectionWindow = new main_lection(this);
+            lectionWindow->setAttribute(Qt::WA_DeleteOnClose);
+            lectionWindow->show();
+        }
     }
 }
 

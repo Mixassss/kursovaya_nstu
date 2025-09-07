@@ -15,6 +15,13 @@ public:
     explicit zadania3(QWidget *parent = nullptr);
     ~zadania3();
 
+private slots:
+    void updateSubmitButtonState();
+    void on_pushButton_6_clicked();
+    void updateButtonsVisibility();
+    void on_backButton_clicked();
+    void onBackClicked();
+
 private:
     Ui::zadania3 *ui;
 };

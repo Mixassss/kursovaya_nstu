@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Обучающая система</string>
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: rgb(36, 31, 49);</string>
@@ -26,10 +26,10 @@
     </rect>
    </property>
    <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+    <enum>QFrame::Shape::StyledPanel</enum>
    </property>
    <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
+    <enum>QFrame::Shadow::Raised</enum>
    </property>
    <widget class="QFrame" name="frame_2">
     <property name="geometry">
@@ -47,10 +47,10 @@
      <string notr="true">background-color: rgb(119, 118, 123);</string>
     </property>
     <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+     <enum>QFrame::Shape::StyledPanel</enum>
     </property>
     <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
+     <enum>QFrame::Shadow::Raised</enum>
     </property>
     <widget class="QPushButton" name="pushButton">
      <property name="geometry">
@@ -83,7 +83,7 @@ color: rgb(0, 0, 0);</string>
 color: rgb(0, 0, 0);</string>
      </property>
      <property name="text">
-      <string>Линейные списки</string>
+      <string>Стеки</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_4">
@@ -116,7 +116,7 @@ color: rgb(0, 0, 0);</string>
 color: rgb(0, 0, 0);</string>
      </property>
      <property name="text">
-      <string>Стеки</string>
+      <string>Линейные списки</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_3">
@@ -150,7 +150,6 @@ color: rgb(0, 0, 0);</string>
      <font>
       <family>LM Roman 8</family>
       <pointsize>20</pointsize>
-      <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
