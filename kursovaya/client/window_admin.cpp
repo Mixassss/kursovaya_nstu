@@ -4,9 +4,10 @@
 #include "add_users.h"
 #include "delete_users.h"
 
-window_admin::window_admin(QWidget *parent)
+window_admin::window_admin(QTcpSocket *sharedSocket, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::window_admin)
+    , socket(sharedSocket)
 {
     ui->setupUi(this);
 
@@ -37,12 +38,13 @@ void window_admin::on_backButton_clicked() { // Реализация слота 
 }
 
 void window_admin::on_add_users_clicked() {
-    add_users *usersWindow = new add_users(this);
-    usersWindow->exec(); // Открываем add_users как модальное окно
+    add_users *usersWindow = new add_users(socket, this);
+    usersWindow->exec();
+    delete usersWindow;
 }
 
 void window_admin::on_delete_users_clicked() {
-    delete_users *deleteWindow = new delete_users(this);
-    deleteWindow->exec(); // Открываем окно удаления как модальное
+    delete_users *deleteWindow = new delete_users(socket, this);
+    deleteWindow->exec();
     delete deleteWindow;
 }

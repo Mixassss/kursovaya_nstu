@@ -2,7 +2,9 @@
 #define AUTORIZATION_H
 
 #include <QDialog>
-#include "database.h"
+#include <QTcpSocket>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,11 +25,12 @@ private slots:
     void on_loginButton_clicked();
     void on_backButton_clicked();
     void on_inputChanged();
+    void onServerResponse();
 
 private:
     QString userPosition;
     Ui::Dialog *ui;
-    Database *db;
+    QTcpSocket *socket;
 };
 
 #endif // AUTORIZATION_H

@@ -10,9 +10,9 @@
 #include "dialog_window_exit.h"
 
 
-main_lection::main_lection(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::main_lection) {
+main_lection::main_lection(QTcpSocket *sharedSocket, QWidget *parent)
+    : QDialog(parent), ui(new Ui::main_lection), socket(sharedSocket)
+{
     ui->setupUi(this);
 
     // Подключаем сигнал clicked() кнопки "Основы программирования. Вопросы легкой сложности"

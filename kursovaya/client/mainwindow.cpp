@@ -10,8 +10,19 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow) {
+    , ui(new Ui::MainWindow)
+    , socket(new QTcpSocket(this))   // создаем сокет
+{
     ui->setupUi(this);
+
+    socket->connectToHost("127.0.0.1", 9823);
+
+    connect(socket, &QTcpSocket::connected, this, [](){
+        qDebug() << "Connected to server";
+    });
+    connect(socket, &QTcpSocket::errorOccurred, this, [](QAbstractSocket::SocketError err){
+        qWarning() << "Socket error" << err;
+    });
 
     // Устанавливаем минимальный размер окна
     setMinimumSize(750, 580);
@@ -66,19 +77,16 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_loginButton_clicked() {
-    Dialog authDialog(this); // Создаем экземпляр диалогового окна авторизации
+    Dialog authDialog(this);
     if (authDialog.exec() == QDialog::Accepted) {
-        // Получаем позицию пользователя из диалога авторизации
         QString position = authDialog.getUserPosition();
 
         if (position == "admin") {
-            // Открываем окно администратора
-            window_admin *adminWindow = new window_admin(this);
+            window_admin *adminWindow = new window_admin(socket, nullptr); // nullptr как родитель
             adminWindow->setAttribute(Qt::WA_DeleteOnClose);
-            adminWindow->show();
+            adminWindow->show(); // show() вместо exec(), чтобы не блокировать MainWindow
         } else {
-            // Для teacher/student открываем main_lection
-            main_lection *lectionWindow = new main_lection(this);
+            main_lection *lectionWindow = new main_lection(socket, nullptr);
             lectionWindow->setAttribute(Qt::WA_DeleteOnClose);
             lectionWindow->show();
         }

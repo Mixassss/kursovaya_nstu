@@ -27,6 +27,7 @@ public:
     QVector<QPair<int, QString>> getAvailableTests();
     QVector<QPair<int, QString>> getTestQuestions(int testId);
     QVector<QPair<int, QString>> getQuestionAnswers(int questionId);
+    QList<QVariantMap> getAllUsers();
     int getCorrectAnswerId(int questionId);
     bool saveTestResult(int studentId, int testId, int score);
     QByteArray encryptData(const QString &data);

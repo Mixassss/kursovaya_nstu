@@ -1,14 +1,11 @@
 #include "add_users.h"
 #include "ui_add_users.h"
 #include <QMessageBox>
-#include <QRegularExpression>
-#include <QRegularExpressionValidator>
-#include "database.h"
 
-add_users::add_users(QWidget *parent)
+add_users::add_users(QTcpSocket *sharedSocket, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::add_users)
-    , db(new Database(this))
+    , socket(sharedSocket)
 {
     ui->setupUi(this);
 
@@ -93,101 +90,71 @@ add_users::add_users(QWidget *parent)
         "}"
         );
 
-    // Подключение к базе данных
-    if (!db->connectToDatabase()) {
-        QMessageBox::critical(this, "Ошибка",
-                              "Не удалось подключиться к базе данных");
-    }
-
-    // Установка максимальной длины
-    ui->Login->setMaxLength(50);
-    ui->Password->setMaxLength(255);
-    ui->Password->setEchoMode(QLineEdit::Password);
-
-    // Валидатор для логина (только буквы, цифры и подчеркивание)
-    QRegularExpression loginRegex("^[a-zA-Z0-9_]+$");
-    QRegularExpressionValidator *loginValidator = new QRegularExpressionValidator(loginRegex, this);
-    ui->Login->setValidator(loginValidator);
-
-    // Стиль для radio buttons (цвет текста)
-    ui->student->setStyleSheet("color: #26a269; font-weight: bold;");
-    ui->teacher->setStyleSheet("color: #e01b24; font-weight: bold;");
-
-    // Подключение кнопок
     connect(ui->pushButton, &QPushButton::clicked, this, &add_users::on_backButton_clicked);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &add_users::on_addButton_clicked);
 
-    // Подключение отслеживания изменений
     connect(ui->Login, &QLineEdit::textChanged, this, &add_users::on_inputChanged);
     connect(ui->Password, &QLineEdit::textChanged, this, &add_users::on_inputChanged);
     connect(ui->student, &QRadioButton::toggled, this, &add_users::on_inputChanged);
     connect(ui->teacher, &QRadioButton::toggled, this, &add_users::on_inputChanged);
 
-    // Изначально кнопка "Добавить" отключена
+    connect(socket, &QTcpSocket::readyRead, this, &add_users::onServerResponse);
+
     ui->pushButton_2->setEnabled(false);
 }
 
-add_users::~add_users()
-{
+add_users::~add_users() {
     delete ui;
 }
 
-void add_users::on_backButton_clicked()
-{
+void add_users::on_backButton_clicked() {
     reject();
 }
 
-void add_users::on_addButton_clicked()
-{
+void add_users::on_addButton_clicked() {
     QString login = ui->Login->text().trimmed();
     QString password = ui->Password->text();
     QString position;
 
-    // Определяем выбранную роль
-    if (ui->student->isChecked()) {
-        position = "student";
-    } else if (ui->teacher->isChecked()) {
-        position = "teacher";
-    }
+    if (ui->student->isChecked()) position = "student";
+    else if (ui->teacher->isChecked()) position = "teacher";
 
-    // Проверка минимальной длины пароля
-    if (password.length() < 4) {
-        QMessageBox::warning(this, "Ошибка", "Пароль должен содержать не менее 4 символов");
-        return;
-    }
+    QJsonObject request;
+    request["type"] = "add_user";
+    request["login"] = login;
+    request["password"] = password;
+    request["position"] = position;
 
-    // Добавление пользователя в базу данных
-    if (db->addUser(login, password, position)) {
-        QMessageBox::information(this, "Успех", "Пользователь успешно добавлен!");
+    // ✅ Отправляем компактный JSON + \n
+    QByteArray data = QJsonDocument(request).toJson(QJsonDocument::Compact) + "\n";
+    socket->write(data);
+    socket->flush();
+}
 
-        // Очистка полей после успешного добавления
-        ui->Login->clear();
-        ui->Password->clear();
-        ui->student->setAutoExclusive(false);
-        ui->student->setChecked(false);
-        ui->teacher->setAutoExclusive(false);
-        ui->teacher->setChecked(false);
-        ui->student->setAutoExclusive(true);
-        ui->teacher->setAutoExclusive(true);
+void add_users::onServerResponse() {
+    QJsonDocument response = QJsonDocument::fromJson(socket->readAll());
+    QJsonObject obj = response.object();
 
-        // Обновление состояния кнопки
-        on_inputChanged();
-    } else {
-        QMessageBox::critical(this, "Ошибка",
-                              "Не удалось добавить пользователя. Возможно, такой логин уже существует.");
+    if (obj["type"] == "add_user") {
+        if (obj["status"] == "ok") {
+            QMessageBox::information(this, "Успех", "Пользователь добавлен!");
+            ui->Login->clear();
+            ui->Password->clear();
+            ui->student->setChecked(false);
+            ui->teacher->setChecked(false);
+            on_inputChanged();
+        } else {
+            QMessageBox::critical(this, "Ошибка", obj["reason"].toString());
+        }
     }
 }
 
-void add_users::on_inputChanged()
-{
+void add_users::on_inputChanged() {
     QString login = ui->Login->text().trimmed();
     QString password = ui->Password->text();
     bool roleSelected = ui->student->isChecked() || ui->teacher->isChecked();
 
-    // Проверяем условия активации кнопки
     bool isLoginValid = login.length() >= 3;
     bool isPasswordValid = password.length() >= 4;
-    bool isValid = isLoginValid && isPasswordValid && roleSelected;
-
-    ui->pushButton_2->setEnabled(isValid);
+    ui->pushButton_2->setEnabled(isLoginValid && isPasswordValid && roleSelected);
 }

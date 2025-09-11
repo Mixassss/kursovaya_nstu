@@ -1,7 +1,6 @@
 #include "database.h"
 #include <QDebug>
 #include <QSqlQuery>
-#include <QMessageBox>
 
 Database::Database(QObject *parent) : QObject(parent)
 {
@@ -11,6 +10,7 @@ Database::Database(QObject *parent) : QObject(parent)
         // Создаем только одно соединение с именем
         db = QSqlDatabase::addDatabase("QPSQL", "education_connection");
         db.setHostName("localhost");
+        db.setPort(5432);
         db.setDatabaseName("education_db");
         db.setUserName("postgres");
         db.setPassword("Password123");
@@ -46,25 +46,38 @@ bool Database::authenticateUser(const QString &login, const QString &password, Q
 {
     QString hashedPassword = hashPassword(password);
 
+    qDebug() << "[AUTH] Login attempt:";
+    qDebug() << "  login:" << login;
+    qDebug() << "  raw password:" << password;
+    qDebug() << "  hashed password (client input):" << hashedPassword;
+
     QSqlQuery query(db);
     query.prepare("SELECT position, password FROM users WHERE login = :login");
     query.bindValue(":login", login);
 
     if (!query.exec()) {
-        qWarning() << "Ошибка запроса:" << query.lastError().text();
+        qWarning() << "[AUTH] Ошибка запроса:" << query.lastError().text();
         return false;
     }
 
     if (query.next()) {
         QString storedHash = query.value(1).toString();
+        qDebug() << "  stored hash (from DB):" << storedHash;
+
         if (storedHash == hashedPassword) {
             position = query.value(0).toString();
+            qDebug() << "[AUTH] Success, position =" << position;
             return true;
+        } else {
+            qWarning() << "[AUTH] Hash mismatch!";
         }
+    } else {
+        qWarning() << "[AUTH] Пользователь не найден:" << login;
     }
 
     return false;
 }
+
 
 QSqlError Database::lastError() const
 {
@@ -135,4 +148,30 @@ QString Database::hashPassword(const QString &password)
     QByteArray passwordData = password.toUtf8();
     QByteArray hash = QCryptographicHash::hash(passwordData, QCryptographicHash::Sha256);
     return QString(hash.toHex());
+}
+
+QList<QVariantMap> Database::getAllUsers()
+{
+    QList<QVariantMap> list;
+
+    if (!db.isOpen()) {
+        qWarning() << "База данных не открыта!";
+        return list;
+    }
+
+    QSqlQuery query(db);
+    if (!query.exec("SELECT id, login, position FROM users ORDER BY id ASC")) {
+        qWarning() << "Ошибка выборки пользователей:" << query.lastError().text();
+        return list;
+    }
+
+    while (query.next()) {
+        QVariantMap user;
+        user["id"] = query.value(0);
+        user["login"] = query.value(1);
+        user["position"] = query.value(2);
+        list.append(user);
+    }
+
+    return list;
 }
