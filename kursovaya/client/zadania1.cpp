@@ -1,132 +1,226 @@
 #include "zadania1.h"
-#include "test1.h"
 #include "ui_zadania1.h"
+#include "test1.h"
+#include <QMessageBox>
+#include <QJsonDocument>
 
-zadania1::zadania1(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::zadania1) {
+zadania1::zadania1(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
+    : QDialog(parent), ui(new Ui::zadania1), socket(sharedSocket), userId(currentUserId)
+{
     ui->setupUi(this);
 
-    // Изначально кнопки скрыты
-    ui->pushButton_5->setVisible(false); // Пройти ещё раз
-    ui->pushButton_2->setVisible(false); // Следующий вопрос
-    ui->pushButton_3->setVisible(false); // Вернуться к теории
+    alreadyPassed = false;
 
-    // Изначально кнопка "Ответить" отключена
+    // Скрываем навигационные кнопки
+    ui->pushButton_5->setVisible(false);
+    ui->pushButton_2->setVisible(false);
+    ui->pushButton_3->setVisible(false);
+
     ui->pushButton_4->setEnabled(false);
 
-    // Подключаем слоты для радиокнопок первой группы
-    connect(ui->AnswerA, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
-    connect(ui->AnswerB, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
-    connect(ui->AnswerC, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
-    connect(ui->AnswerD, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
+    QList<QRadioButton*> buttons = {
+        ui->AnswerA, ui->AnswerB, ui->AnswerC, ui->AnswerD,
+        ui->AnswerA_2, ui->AnswerB_2, ui->AnswerC_2, ui->AnswerD_2
+    };
 
-    // Подключаем слоты для радиокнопок второй группы
-    connect(ui->AnswerA_2, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
-    connect(ui->AnswerB_2, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
-    connect(ui->AnswerC_2, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
-    connect(ui->AnswerD_2, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
+    // Сразу включаем кнопки, если пользователь впервые
+    for (auto btn : buttons) btn->setEnabled(true);
 
+    // Подключаем слоты для радиокнопок
+    for (auto btn : buttons)
+        connect(btn, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
+
+    // Кнопки
     connect(ui->pushButton, &QPushButton::clicked, this, &zadania1::on_backButton_clicked);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &zadania1::onBackClicked);
+    connect(ui->pushButton_5, &QPushButton::clicked, this, &zadania1::on_pushButton_5_clicked);
+    connect(ui->pushButton_4, &QPushButton::clicked, this, &zadania1::on_pushButton_4_clicked);
+
+    connect(socket, &QTcpSocket::readyRead, this, &zadania1::onServerResponse);
+
+    // Запросим последний результат
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 1;
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
 }
 
 zadania1::~zadania1() {
     delete ui;
 }
 
-void zadania1::on_pushButton_4_clicked() {
-    // Блокируем радиокнопки
-    ui->AnswerA->setEnabled(false);
-    ui->AnswerB->setEnabled(false);
-    ui->AnswerC->setEnabled(false);
-    ui->AnswerD->setEnabled(false);
-    ui->AnswerA_2->setEnabled(false);
-    ui->AnswerB_2->setEnabled(false);
-    ui->AnswerC_2->setEnabled(false);
-    ui->AnswerD_2->setEnabled(false);
+// ===================== вспомогательные =====================
 
-    // Обновляем видимость кнопок в зависимости от выбранных ответов
-    updateButtonsVisibility();
-
-    // Деактивируем кнопку "Ответить"
+void zadania1::lockAnswers() {
+    QList<QRadioButton*> buttons = {
+        ui->AnswerA, ui->AnswerB, ui->AnswerC, ui->AnswerD,
+        ui->AnswerA_2, ui->AnswerB_2, ui->AnswerC_2, ui->AnswerD_2
+    };
+    for (auto btn : buttons) btn->setEnabled(false);
     ui->pushButton_4->setEnabled(false);
 }
 
-void zadania1::updateSubmitButtonState() {
-    // Проверяем, выбраны ли ответы из обеих групп
-    bool firstGroupSelected = ui->AnswerA->isChecked() || ui->AnswerB->isChecked() || ui->AnswerC->isChecked() || ui->AnswerD->isChecked();
-    bool secondGroupSelected = ui->AnswerA_2->isChecked() || ui->AnswerB_2->isChecked() || ui->AnswerC_2->isChecked() || ui->AnswerD_2->isChecked();
+void zadania1::resetAnswers() {
+    QList<QRadioButton*> buttons = {
+        ui->AnswerA, ui->AnswerB, ui->AnswerC, ui->AnswerD,
+        ui->AnswerA_2, ui->AnswerB_2, ui->AnswerC_2, ui->AnswerD_2
+    };
+    for (auto btn : buttons) {
+        btn->setAutoExclusive(false);
+        btn->setChecked(false);
+        btn->setStyleSheet("");
+        btn->setAutoExclusive(true);
+        btn->setEnabled(true);
+    }
+    ui->pushButton_4->setEnabled(false);
+}
 
-    // Активируем кнопку "Ответить", если выбрано 2 ответа (по одному из каждой группы)
+void zadania1::sendSaveResult(int score) {
+    QString answer1, answer2;
+    if (ui->AnswerA->isChecked()) answer1 = "A";
+    if (ui->AnswerB->isChecked()) answer1 = "B";
+    if (ui->AnswerC->isChecked()) answer1 = "C";
+    if (ui->AnswerD->isChecked()) answer1 = "D";
+
+    if (ui->AnswerA_2->isChecked()) answer2 = "A";
+    if (ui->AnswerB_2->isChecked()) answer2 = "B";
+    if (ui->AnswerC_2->isChecked()) answer2 = "C";
+    if (ui->AnswerD_2->isChecked()) answer2 = "D";
+
+    QJsonObject req;
+    req["type"] = "save_result";
+    req["student_id"] = userId;
+    req["test_id"] = 1;
+    req["score"] = score;
+    req["answer1"] = answer1;
+    req["answer2"] = answer2;
+
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+}
+
+// ===================== логика теста =====================
+
+void zadania1::on_pushButton_4_clicked() {
+    bool firstGroupAnswered = ui->AnswerA->isChecked() || ui->AnswerB->isChecked()
+    || ui->AnswerC->isChecked() || ui->AnswerD->isChecked();
+    bool secondGroupAnswered = ui->AnswerA_2->isChecked() || ui->AnswerB_2->isChecked()
+                               || ui->AnswerC_2->isChecked() || ui->AnswerD_2->isChecked();
+
+    if (!firstGroupAnswered || !secondGroupAnswered) {
+        QMessageBox::warning(this, "Ошибка", "Вы должны выбрать ответ в обеих группах!");
+        return;
+    }
+
+    int score = 0;
+    if (ui->AnswerB->isChecked()) score++;
+    if (ui->AnswerC_2->isChecked()) score++;
+
+    lockAnswers();
+    updateButtonsVisibility();
+
+    sendSaveResult(score);   // сохраняем результат всегда
+    alreadyPassed = true;
+    emit scoreUpdated(score); // уведомляем main_lection
+}
+
+void zadania1::updateSubmitButtonState() {
+    bool firstGroupSelected = ui->AnswerA->isChecked() || ui->AnswerB->isChecked()
+    || ui->AnswerC->isChecked() || ui->AnswerD->isChecked();
+    bool secondGroupSelected = ui->AnswerA_2->isChecked() || ui->AnswerB_2->isChecked()
+                               || ui->AnswerC_2->isChecked() || ui->AnswerD_2->isChecked();
+
     ui->pushButton_4->setEnabled(firstGroupSelected && secondGroupSelected);
 }
 
 void zadania1::updateButtonsVisibility() {
-    // Проверка правильных ответов
-    bool firstGroupCorrect = ui->AnswerB->isChecked(); // AnswerB - правильный ответ первой группы
-    bool secondGroupCorrect = ui->AnswerC_2->isChecked(); // AnswerC_2 - правильный ответ второй группы
+    bool firstGroupCorrect = ui->AnswerB->isChecked();
+    bool secondGroupCorrect = ui->AnswerC_2->isChecked();
 
-    // Изменяем цвет кнопок в зависимости от выбора
-    if (ui->AnswerA->isChecked()) {
-        ui->AnswerA->setStyleSheet("background-color: red;"); // Неправильный ответ
-    }
-    if (ui->AnswerB->isChecked()) {
-        ui->AnswerB->setStyleSheet("background-color: green;"); // Правильный ответ
-    }
-    if (ui->AnswerC->isChecked()) {
-        ui->AnswerC->setStyleSheet("background-color: red;"); // Неправильный ответ
-    }
-    if (ui->AnswerD->isChecked()) {
-        ui->AnswerD->setStyleSheet("background-color: red;"); // Неправильный ответ
-    }
+    // Подсветка
+    if (ui->AnswerA->isChecked()) ui->AnswerA->setStyleSheet("background-color: red;");
+    if (ui->AnswerB->isChecked()) ui->AnswerB->setStyleSheet("background-color: green;");
+    if (ui->AnswerC->isChecked()) ui->AnswerC->setStyleSheet("background-color: red;");
+    if (ui->AnswerD->isChecked()) ui->AnswerD->setStyleSheet("background-color: red;");
 
-    if (ui->AnswerA_2->isChecked()) {
-        ui->AnswerA_2->setStyleSheet("background-color: red;"); // Неправильный ответ
-    }
-    if (ui->AnswerB_2->isChecked()) {
-        ui->AnswerB_2->setStyleSheet("background-color: red;"); // Неправильный ответ
-    }
-    if (ui->AnswerC_2->isChecked()) {
-        ui->AnswerC_2->setStyleSheet("background-color: green;"); // Правильный ответ
-    }
-    if (ui->AnswerD_2->isChecked()) {
-        ui->AnswerD_2->setStyleSheet("background-color: red;"); // Неправильный ответ
-    }
+    if (ui->AnswerA_2->isChecked()) ui->AnswerA_2->setStyleSheet("background-color: red;");
+    if (ui->AnswerB_2->isChecked()) ui->AnswerB_2->setStyleSheet("background-color: red;");
+    if (ui->AnswerC_2->isChecked()) ui->AnswerC_2->setStyleSheet("background-color: green;");
+    if (ui->AnswerD_2->isChecked()) ui->AnswerD_2->setStyleSheet("background-color: red;");
 
-    // Логика для видимости кнопок
+    // Логика кнопок
     if (firstGroupCorrect && secondGroupCorrect) {
-        // Если оба ответа верные
-        ui->pushButton_5->setVisible(false); // Показать кнопку "Пройти ещё раз"
-        ui->pushButton_2->setVisible(true); // Показать кнопку "Следующий вопрос"
-        ui->pushButton_3->setVisible(false); // Скрыть кнопку "Вернуться к теории"
-    } else if (firstGroupCorrect || secondGroupCorrect) {
-        // Если один ответ верный
-        ui->pushButton_5->setVisible(true); // Показать кнопку "Пройти ещё раз"
-        ui->pushButton_2->setVisible(true); // Скрыть кнопку "Следующий вопрос"
-        ui->pushButton_3->setVisible(false); // Скрыть кнопку "Вернуться к теории"
+        ui->pushButton_5->setVisible(false); // перепройти нельзя
+        ui->pushButton_2->setVisible(true);
+        ui->pushButton_3->setVisible(false);
     } else {
-        // Если ни один ответ не верный
-        ui->pushButton_5->setVisible(false); // Скрыть кнопку "Пройти ещё раз"
-        ui->pushButton_2->setVisible(false); // Скрыть кнопку "Следующий вопрос"
-        ui->pushButton_3->setVisible(true); // Показать кнопку "Вернуться к теории"
+        ui->pushButton_5->setVisible(true); // можно перепройти
+        ui->pushButton_2->setVisible(firstGroupCorrect || secondGroupCorrect);
+        ui->pushButton_3->setVisible(true);
     }
 }
 
-void zadania1::on_backButton_clicked() { // Реализация слота для кнопки "Вернуться на главную"
-    reject(); // Закрывает диалог с результатом "Rejected"
+// ===================== ответы от сервера =====================
+
+void zadania1::onServerResponse() {
+    QByteArray data = socket->readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonObject obj = doc.object();
+
+    if (obj["type"] == "get_result") {
+        if (obj["status"] == "ok") {
+            int score = obj["score"].toInt();
+            lastAnswer1 = obj["answer1"].toString();
+            lastAnswer2 = obj["answer2"].toString();
+
+            alreadyPassed = true;
+            restoreAnswersAndHighlight(lastAnswer1, lastAnswer2);
+            ui->pushButton_4->setVisible(false);
+            emit scoreUpdated(score);
+        } else if (obj["status"] == "empty") {
+            QList<QRadioButton*> buttons = {
+                ui->AnswerA, ui->AnswerB, ui->AnswerC, ui->AnswerD,
+                ui->AnswerA_2, ui->AnswerB_2, ui->AnswerC_2, ui->AnswerD_2
+            };
+            for (auto btn : buttons) btn->setEnabled(true);
+            alreadyPassed = false;
+        }
+    }
 }
+
+// ===================== кнопки =====================
+
+void zadania1::on_pushButton_5_clicked() {
+    alreadyPassed = false;   // сбрасываем статус
+    resetAnswers();          // сбрасываем ответы
+    ui->pushButton_5->setVisible(false);
+    ui->pushButton_2->setVisible(false);
+    ui->pushButton_3->setVisible(false);
+    ui->pushButton_4->setVisible(true);
+}
+
+void zadania1::on_backButton_clicked() { reject(); }
 
 void zadania1::onBackClicked() {
-    // Создаем новое окно test1
     test1 *lectionWindow = new test1();
-
-    // Настраиваем новое окно
-    lectionWindow->setModal(true); // Если нужно модальное окно
-
-    // Закрываем текущее окно
+    lectionWindow->setModal(true);
     this->close();
-
-    // Показываем новое окно
     lectionWindow->show();
+}
+
+void zadania1::restoreAnswersAndHighlight(const QString &answer1, const QString &answer2) {
+    if (answer1 == "A") ui->AnswerA->setChecked(true);
+    else if (answer1 == "B") ui->AnswerB->setChecked(true);
+    else if (answer1 == "C") ui->AnswerC->setChecked(true);
+    else if (answer1 == "D") ui->AnswerD->setChecked(true);
+
+    if (answer2 == "A") ui->AnswerA_2->setChecked(true);
+    else if (answer2 == "B") ui->AnswerB_2->setChecked(true);
+    else if (answer2 == "C") ui->AnswerC_2->setChecked(true);
+    else if (answer2 == "D") ui->AnswerD_2->setChecked(true);
+
+    lockAnswers();
+    updateButtonsVisibility();
 }

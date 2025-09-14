@@ -42,37 +42,30 @@ bool Database::connectToDatabase()
     return true;
 }
 
-bool Database::authenticateUser(const QString &login, const QString &password, QString &position)
-{
-    QString hashedPassword = hashPassword(password);
-
-    qDebug() << "[AUTH] Login attempt:";
-    qDebug() << "  login:" << login;
-    qDebug() << "  raw password:" << password;
-    qDebug() << "  hashed password (client input):" << hashedPassword;
+bool Database::authenticateUser(const QString &login, const QString &password, QString &position, int &userId) {
+    if (!db.isOpen()) {
+        qWarning() << "База данных не открыта!";
+        return false;
+    }
 
     QSqlQuery query(db);
-    query.prepare("SELECT position, password FROM users WHERE login = :login");
+    query.prepare("SELECT id, position, password FROM users WHERE login = :login");
     query.bindValue(":login", login);
 
     if (!query.exec()) {
-        qWarning() << "[AUTH] Ошибка запроса:" << query.lastError().text();
+        qWarning() << "Ошибка запроса аутентификации:" << query.lastError().text();
         return false;
     }
 
     if (query.next()) {
-        QString storedHash = query.value(1).toString();
-        qDebug() << "  stored hash (from DB):" << storedHash;
+        QString storedHash = query.value("password").toString();
+        QString hash = hashPassword(password); // твоя функция хэширования
 
-        if (storedHash == hashedPassword) {
-            position = query.value(0).toString();
-            qDebug() << "[AUTH] Success, position =" << position;
+        if (storedHash == hash) {
+            position = query.value("position").toString();
+            userId = query.value("id").toInt();
             return true;
-        } else {
-            qWarning() << "[AUTH] Hash mismatch!";
         }
-    } else {
-        qWarning() << "[AUTH] Пользователь не найден:" << login;
     }
 
     return false;
@@ -175,3 +168,79 @@ QList<QVariantMap> Database::getAllUsers()
 
     return list;
 }
+
+// Получить вопросы и ответы для теста
+QList<QVariantMap> Database::getQuestionsForTest(int testId) {
+    QList<QVariantMap> list;
+    QSqlQuery query(db);
+    query.prepare(R"(
+        SELECT q.id, q.question_text, a.id AS answer_id, a.answer_text, q.correct_answer_id
+        FROM questions q
+        JOIN answers a ON q.id = a.question_id
+        WHERE q.test_id = :test_id
+        ORDER BY q.id, a.id
+    )");
+    query.bindValue(":test_id", testId);
+
+    if (!query.exec()) {
+        qWarning() << "Ошибка выборки вопросов:" << query.lastError().text();
+        return list;
+    }
+
+    while (query.next()) {
+        QVariantMap row;
+        row["question_id"] = query.value("id");
+        row["question_text"] = query.value("question_text");
+        row["answer_id"] = query.value("answer_id");
+        row["answer_text"] = query.value("answer_text");
+        row["correct_answer_id"] = query.value("correct_answer_id");
+        list.append(row);
+    }
+    return list;
+}
+
+// Сохранить результат теста студента
+bool Database::saveStudentTestResult(int studentId, int testId, int score, const QString &answer1, const QString &answer2) {
+    QSqlQuery query(db);
+
+    // Попробуем обновить существующую запись
+    query.prepare(R"(
+        UPDATE student_tests
+        SET score = :score,
+            passed_at = NOW(),
+            answer1 = :answer1,
+            answer2 = :answer2
+        WHERE student_id = :student_id AND test_id = :test_id
+    )");
+    query.bindValue(":score", score);
+    query.bindValue(":answer1", answer1);
+    query.bindValue(":answer2", answer2);
+    query.bindValue(":student_id", studentId);
+    query.bindValue(":test_id", testId);
+
+    if (!query.exec()) {
+        qWarning() << "Ошибка обновления результата:" << query.lastError().text();
+        return false;
+    }
+
+    // Если строка не обновилась (новый пользователь) — вставляем
+    if (query.numRowsAffected() == 0) {
+        query.prepare(R"(
+            INSERT INTO student_tests (student_id, test_id, score, passed_at, answer1, answer2)
+            VALUES (:student_id, :test_id, :score, NOW(), :answer1, :answer2)
+        )");
+        query.bindValue(":student_id", studentId);
+        query.bindValue(":test_id", testId);
+        query.bindValue(":score", score);
+        query.bindValue(":answer1", answer1);
+        query.bindValue(":answer2", answer2);
+
+        if (!query.exec()) {
+            qWarning() << "Ошибка вставки результата:" << query.lastError().text();
+            return false;
+        }
+    }
+
+    return true;
+}
+

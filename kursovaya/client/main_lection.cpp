@@ -8,10 +8,12 @@
 #include "test2.h" // Подключаем класс test2
 #include "test3.h" // Подключаем класс test3
 #include "dialog_window_exit.h"
+#include <QJsonDocument>
+#include <QJsonObject>
 
 
-main_lection::main_lection(QTcpSocket *sharedSocket, QWidget *parent)
-    : QDialog(parent), ui(new Ui::main_lection), socket(sharedSocket)
+main_lection::main_lection(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
+    : QDialog(parent), ui(new Ui::main_lection), socket(sharedSocket), userId(currentUserId)
 {
     ui->setupUi(this);
 
@@ -40,15 +42,85 @@ main_lection::main_lection(QTcpSocket *sharedSocket, QWidget *parent)
 
     // Подключаем сигнал clicked() кнопки "Выход из системы" к слоту
     connect(ui->quit_system, &QPushButton::clicked, this, &main_lection::on_exitButton_clicked);
+
+    connect(socket, &QTcpSocket::readyRead, this, &main_lection::onServerResponse);
+
+    requestTestResults();
 }
 
 main_lection::~main_lection() {
     delete ui;
 }
 
+void main_lection::onServerResponse() {
+    QByteArray data = socket->readAll();
+    qDebug() << "SERVER RESPONSE:" << data;
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonObject obj = doc.object();
+
+    if (obj["type"] == "get_result") {
+        QString status = obj["status"].toString();
+        int score = obj["score"].toInt();
+
+        // мы знаем, что запросили test_id = 1, поэтому проверяем waitingForTestId
+        if (status == "ok") {
+            ui->two_max_balls_ez->setText(QString::number(score) + " балла");
+
+            if (waitingForTestId == 1) {
+                waitingForTestId = 0;
+
+                zadania1 *zadaniaWindow = new zadania1(socket, userId, this);
+                connect(zadaniaWindow, &zadania1::scoreUpdated, this, [=](int newScore){
+                    int oldScore = ui->two_max_balls_ez->text().split(' ').first().toInt();
+                    if (newScore > oldScore) {
+                        ui->two_max_balls_ez->setText(QString::number(newScore) + " балла");
+                    }
+                });
+
+                if (score == 2) {
+                    QMessageBox::information(this, "Тест пройден", "Тест пройден на максимальный балл!");
+                    zadaniaWindow->deleteLater();
+                } else {
+                    QMessageBox::StandardButton reply =
+                        QMessageBox::question(this, "Тест пройден",
+                                              "Ваш результат: " + QString::number(score) + " балла.\n"
+                                                                                           "Желаете перепройти тест?",
+                                              QMessageBox::Yes | QMessageBox::No);
+
+                    if (reply == QMessageBox::Yes) {
+                        zadaniaWindow->exec();
+                    } else {
+                        zadaniaWindow->deleteLater();
+                    }
+                }
+            }
+        } else if (status == "empty") {
+            ui->two_max_balls_ez->setText("0 баллов");
+
+            if (waitingForTestId == 1) {
+                waitingForTestId = 0;
+
+                zadania1 *zadaniaWindow = new zadania1(socket, userId, this);
+                connect(zadaniaWindow, &zadania1::scoreUpdated, this, [=](int newScore){
+                    ui->two_max_balls_ez->setText(QString::number(newScore) + " балла");
+                });
+                zadaniaWindow->exec(); // открываем сразу, если впервые
+            }
+        }
+    }
+}
+
+
 void main_lection::on_easy_question_clicked() {
-    zadania1 *zadaniaWindow = new zadania1(this);
-    zadaniaWindow->exec(); // Открываем zadania1 как модальное окно
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 1;
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+
+    waitingForTestId = 1; // ✅ вместо waitingForEasyTest
 }
 
 void main_lection::on_middle_question_clicked() {
@@ -91,4 +163,32 @@ void main_lection::on_exitButton_clicked() {
     if (exitDialog.exec() == QDialog::Accepted) {
         qApp->quit(); // Закрываем приложение, если нажата кнопка "Да"
     }
+}
+
+void main_lection::requestTestResults() {
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 1; // для лёгкого теста
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+
+    QMetaObject::Connection connection;
+    connection = connect(socket, &QTcpSocket::readyRead, this, [=]() mutable {
+        QByteArray data = socket->readAll();
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        QJsonObject obj = doc.object();
+
+        if (obj["type"] == "get_result") {
+            disconnect(connection);
+
+            if (obj["status"] == "ok") {
+                int score = obj["score"].toInt();
+                ui->two_max_balls_ez->setText(QString::number(score) + " балла");
+            } else {
+                // Если тест ещё не проходили
+                ui->two_max_balls_ez->setText("0 баллов");
+            }
+        }
+    });
 }

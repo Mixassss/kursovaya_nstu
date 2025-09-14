@@ -54,15 +54,20 @@ void Handler::handleRequest(const QJsonObject &request)
 
     if (cmd == "auth") {
         QString position;
+        int userId;
         bool ok = m_db->authenticateUser(
             request.value("login").toString(),
             request.value("password").toString(),
-            position
+            position,
+            userId
             );
 
         response["type"] = "auth";
         response["status"] = ok ? "ok" : "error";
-        if (ok) response["position"] = position;
+        if (ok) {
+            response["position"] = position;
+            response["id"] = userId;
+        }
     }
     else if (cmd == "add_user") {
         bool ok = m_db->addUser(
@@ -98,6 +103,59 @@ void Handler::handleRequest(const QJsonObject &request)
         response["type"] = "list_users";
         response["status"] = "ok";
         response["users"] = usersArray;
+    }
+    else if (cmd == "get_test") {
+        int testId = request.value("test_id").toInt();
+        QList<QVariantMap> questions = m_db->getQuestionsForTest(testId);
+
+        QJsonArray arr;
+        for (auto &q : questions) {
+            QJsonObject obj;
+            obj["question_id"] = q["question_id"].toInt();
+            obj["question_text"] = q["question_text"].toString();
+            obj["answer_id"] = q["answer_id"].toInt();
+            obj["answer_text"] = q["answer_text"].toString();
+            obj["correct_answer_id"] = q["correct_answer_id"].toInt();
+            arr.append(obj);
+        }
+
+        response["type"] = "get_test";
+        response["status"] = "ok";
+        response["questions"] = arr;
+    }
+    else if (cmd == "save_result") {
+        int studentId = request.value("student_id").toInt();
+        int testId = request.value("test_id").toInt();
+        int score = request.value("score").toInt();
+        QString answer1 = request.value("answer1").toString();
+        QString answer2 = request.value("answer2").toString();
+
+        bool ok = m_db->saveStudentTestResult(studentId, testId, score, answer1, answer2);
+
+        response["type"] = "save_result";
+        response["status"] = ok ? "ok" : "error";
+    }
+    else if (cmd == "get_result") {
+        int studentId = request.value("student_id").toInt();
+        int testId = request.value("test_id").toInt();
+
+        QSqlQuery query(m_db->connection());
+        query.prepare("SELECT score, passed_at, answer1, answer2 FROM student_tests "
+                      "WHERE student_id = :sid AND test_id = :tid "
+                      "ORDER BY score DESC, passed_at DESC LIMIT 1"); // берём лучший результат
+        query.bindValue(":sid", studentId);
+        query.bindValue(":tid", testId);
+
+        response["type"] = "get_result";
+        if (query.exec() && query.next()) {
+            response["status"] = "ok";
+            response["score"] = query.value("score").toInt();
+            response["passed_at"] = query.value("passed_at").toString();
+            response["answer1"] = query.value("answer1").toString();
+            response["answer2"] = query.value("answer2").toString();
+        } else {
+            response["status"] = "empty"; // результатов нет
+        }
     }
     else {
         response["type"] = cmd.isEmpty() ? "unknown" : cmd;

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTcpSocket>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,6 +19,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void setUserId(int id) { userId = id; }   // сохраняем userId после авторизации
+
 private slots:
     void on_loginButton_clicked(); // Слот для обработки нажатия кнопки
     void on_exitButton_clicked();
@@ -25,6 +28,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QTcpSocket *socket;
+    int userId;   // ID текущего пользователя
 };
 
 #endif // MAINWINDOW_H

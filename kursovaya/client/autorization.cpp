@@ -23,7 +23,7 @@ Dialog::Dialog(QWidget *parent)
 
     connect(socket, &QTcpSocket::readyRead, this, &Dialog::onServerResponse);
 
-    socket->connectToHost("127.0.0.1", 9823); // подключаемся к серверу
+    socket->connectToHost("127.0.0.1", 9850); // подключаемся к серверу
 }
 
 Dialog::~Dialog() {
@@ -55,6 +55,7 @@ void Dialog::onServerResponse() {
     if (obj["type"] == "auth") {
         if (obj["status"] == "ok") {
             this->userPosition = obj["position"].toString();
+            this->userId = obj["id"].toInt();
             accept();
         } else {
             QMessageBox::warning(this, "Ошибка", "Неверный логин или пароль.");

@@ -18,6 +18,7 @@ class Dialog : public QDialog
 
 public:
     QString getUserPosition() const;
+    int getUserId() const { return userId; }
     explicit Dialog(QWidget *parent = nullptr);
     ~Dialog();
 
@@ -31,6 +32,7 @@ private:
     QString userPosition;
     Ui::Dialog *ui;
     QTcpSocket *socket;
+    int userId;
 };
 
 #endif // AUTORIZATION_H

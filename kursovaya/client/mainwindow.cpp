@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    socket->connectToHost("127.0.0.1", 9823);
+    socket->connectToHost("127.0.0.1", 9850);
 
     connect(socket, &QTcpSocket::connected, this, [](){
         qDebug() << "Connected to server";
@@ -79,6 +79,15 @@ MainWindow::~MainWindow() {
 void MainWindow::on_loginButton_clicked() {
     Dialog authDialog(this);
     if (authDialog.exec() == QDialog::Accepted) {
+
+        int uid = authDialog.getUserId();
+        qDebug() << "Авторизованный пользователь ID:" << uid;
+
+        if (uid == 0) {
+            QMessageBox::critical(this, "Ошибка", "Не удалось получить ID пользователя!");
+            return;
+        }
+
         QString position = authDialog.getUserPosition();
 
         if (position == "admin") {
@@ -86,7 +95,7 @@ void MainWindow::on_loginButton_clicked() {
             adminWindow->setAttribute(Qt::WA_DeleteOnClose);
             adminWindow->show(); // show() вместо exec(), чтобы не блокировать MainWindow
         } else {
-            main_lection *lectionWindow = new main_lection(socket, nullptr);
+            main_lection *lectionWindow = new main_lection(socket, authDialog.getUserId(), nullptr);
             lectionWindow->setAttribute(Qt::WA_DeleteOnClose);
             lectionWindow->show();
         }

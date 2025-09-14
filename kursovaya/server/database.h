@@ -16,20 +16,17 @@ class Database : public QObject
 public:
     explicit Database(QObject *parent = nullptr);
     ~Database();
-
+    QSqlDatabase& connection() { return db; }
     bool connectToDatabase();
-    bool authenticateUser(const QString &login, const QString &password, QString &position);
+    bool authenticateUser(const QString &login, const QString &password, QString &position, int &userId);
     bool addUser(const QString &login, const QString &password, const QString &position);
     QSqlDatabase getDatabase() const { return db; }
     bool deleteUser(int userId);
     QSqlError lastError() const;
     QString hashPassword(const QString &password);
-    QVector<QPair<int, QString>> getAvailableTests();
-    QVector<QPair<int, QString>> getTestQuestions(int testId);
-    QVector<QPair<int, QString>> getQuestionAnswers(int questionId);
     QList<QVariantMap> getAllUsers();
-    int getCorrectAnswerId(int questionId);
-    bool saveTestResult(int studentId, int testId, int score);
+    bool saveStudentTestResult(int studentId, int testId, int score, const QString &answer1, const QString &answer2);
+    QList<QVariantMap> getQuestionsForTest(int testId);
     QByteArray encryptData(const QString &data);
     QString decryptData(const QByteArray &encryptedData);
 
