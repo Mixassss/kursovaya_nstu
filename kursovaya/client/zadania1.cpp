@@ -15,6 +15,7 @@ zadania1::zadania1(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
     ui->pushButton_5->setVisible(false);
     ui->pushButton_2->setVisible(false);
     ui->pushButton_3->setVisible(false);
+    ui->pushButton->setVisible(false);
 
     ui->pushButton_4->setEnabled(false);
 
@@ -155,10 +156,12 @@ void zadania1::updateButtonsVisibility() {
         ui->pushButton_5->setVisible(false); // перепройти нельзя
         ui->pushButton_2->setVisible(true);
         ui->pushButton_3->setVisible(false);
+        ui->pushButton->setVisible(true);
     } else {
         ui->pushButton_5->setVisible(true); // можно перепройти
         ui->pushButton_2->setVisible(firstGroupCorrect || secondGroupCorrect);
         ui->pushButton_3->setVisible(true);
+        ui->pushButton->setVisible(true);
     }
 }
 

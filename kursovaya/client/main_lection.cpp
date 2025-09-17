@@ -53,64 +53,181 @@ main_lection::~main_lection() {
 }
 
 void main_lection::onServerResponse() {
-    QByteArray data = socket->readAll();
-    qDebug() << "SERVER RESPONSE:" << data;
+    // Добавляем новые данные в буфер
+    socketBuffer.append(socket->readAll());
 
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    QJsonObject obj = doc.object();
+    int index;
+    while ((index = socketBuffer.indexOf('\n')) != -1) {
+        QByteArray line = socketBuffer.left(index);
+        socketBuffer.remove(0, index + 1);
 
-    if (obj["type"] == "get_result") {
-        QString status = obj["status"].toString();
-        int score = obj["score"].toInt();
+        if (line.trimmed().isEmpty()) {
+            continue;
+        }
 
-        // мы знаем, что запросили test_id = 1, поэтому проверяем waitingForTestId
-        if (status == "ok") {
-            ui->two_max_balls_ez->setText(QString::number(score) + " балла");
+        QJsonParseError error;
+        QJsonDocument doc = QJsonDocument::fromJson(line, &error);
+        if (error.error != QJsonParseError::NoError) {
+            qWarning() << "[CLIENT] JSON parse error:" << error.errorString() << "Data:" << line;
+            continue;
+        }
 
-            if (waitingForTestId == 1) {
+        if (!doc.isObject()) {
+            qWarning() << "[CLIENT] Not a JSON object! Data:" << line;
+            continue;
+        }
+
+        QJsonObject obj = doc.object();
+
+        // Обработка ответа (взята из вашей оригинальной реализации)
+        if (obj["type"] == "get_result" || obj["type"] == "save_result") {
+            QString status = obj["status"].toString();
+            int score = obj["score"].toInt();
+            int testId = obj["test_id"].toInt();
+
+            bool isEmpty = false; // флаг: тест ещё не проходили
+
+            // --- Сохраняем результат ---
+            if (status == "ok") {
+                if (testResults[testId] != score) {  // обновляем только если результат изменился
+                    testResults[testId] = score;
+                    updateTotalScore();
+                }
+            } else if (status == "empty") {
+                if (testResults[testId] != -1) {     // чтобы не перезаписывать лишний раз
+                    testResults[testId] = -1;
+                    updateTotalScore();
+                }
+                isEmpty = true;
+            }
+
+            // --- Если ждём этот тест, открываем окно ---
+            if (waitingForTestId == testId) {
                 waitingForTestId = 0;
 
-                zadania1 *zadaniaWindow = new zadania1(socket, userId, this);
-                connect(zadaniaWindow, &zadania1::scoreUpdated, this, [=](int newScore){
-                    int oldScore = ui->two_max_balls_ez->text().split(' ').first().toInt();
-                    if (newScore > oldScore) {
-                        ui->two_max_balls_ez->setText(QString::number(newScore) + " балла");
-                    }
-                });
+                if (testId == 1) {
+                    zadania1 *zadaniaWindow = new zadania1(socket, userId, this);
+                    connect(zadaniaWindow, &zadania1::scoreUpdated, this, [=](int newScore){
+                        if (newScore > testResults[1]) {
+                            testResults[1] = newScore;
+                            updateTotalScore();
+                        }
+                    });
 
-                if (score == 2) {
-                    QMessageBox::information(this, "Тест пройден", "Тест пройден на максимальный балл!");
-                    zadaniaWindow->deleteLater();
-                } else {
-                    QMessageBox::StandardButton reply =
-                        QMessageBox::question(this, "Тест пройден",
-                                              "Ваш результат: " + QString::number(score) + " балла.\n"
-                                                                                           "Желаете перепройти тест?",
-                                              QMessageBox::Yes | QMessageBox::No);
-
-                    if (reply == QMessageBox::Yes) {
+                    if (isEmpty) {
                         zadaniaWindow->exec();
-                    } else {
+                    } else if (score == 2) {
+                        QMessageBox::information(this, "Тест пройден", "Тест 1 пройден на максимальный балл!");
                         zadaniaWindow->deleteLater();
+                    } else {
+                        QMessageBox msgBox(this);
+                        msgBox.setWindowTitle("Тест пройден");
+                        msgBox.setText("Ваш результат: " + QString::number(score) + " балла.\nЖелаете перепройти тест?");
+                        QPushButton *yesButton = msgBox.addButton("✅ Да", QMessageBox::YesRole);
+                        QPushButton *noButton  = msgBox.addButton("❌ Нет", QMessageBox::NoRole);
+                        msgBox.exec();
+
+                        if (msgBox.clickedButton() == yesButton) {
+                            zadaniaWindow->exec();
+                        } else {
+                            zadaniaWindow->deleteLater();
+                        }
                     }
                 }
-            }
-        } else if (status == "empty") {
-            ui->two_max_balls_ez->setText("0 баллов");
 
-            if (waitingForTestId == 1) {
-                waitingForTestId = 0;
+                else if (testId == 2) {
+                    zadania2 *zadaniaWindow = new zadania2(socket, userId, this);
+                    connect(zadaniaWindow, &zadania2::scoreUpdated, this, [=](int newScore){
+                        if (newScore > testResults[2]) {
+                            testResults[2] = newScore;
+                            updateTotalScore();
+                        }
+                    });
 
-                zadania1 *zadaniaWindow = new zadania1(socket, userId, this);
-                connect(zadaniaWindow, &zadania1::scoreUpdated, this, [=](int newScore){
-                    ui->two_max_balls_ez->setText(QString::number(newScore) + " балла");
-                });
-                zadaniaWindow->exec(); // открываем сразу, если впервые
+                    if (isEmpty) {
+                        zadaniaWindow->exec();
+                    } else if (score == 4) {
+                        QMessageBox::information(this, "Тест пройден", "Тест 2 пройден на максимальный балл!");
+                        zadaniaWindow->deleteLater();
+                    } else {
+                        QMessageBox msgBox(this);
+                        msgBox.setWindowTitle("Тест пройден");
+                        msgBox.setText("Ваш результат: " + QString::number(score) + " балла.\nЖелаете перепройти тест?");
+                        QPushButton *yesButton = msgBox.addButton("✅ Да", QMessageBox::YesRole);
+                        QPushButton *noButton  = msgBox.addButton("❌ Нет", QMessageBox::NoRole);
+                        msgBox.exec();
+
+                        if (msgBox.clickedButton() == yesButton) {
+                            zadaniaWindow->exec();
+                        } else {
+                            zadaniaWindow->deleteLater();
+                        }
+                    }
+                }
+
+                else if (testId == 3) {
+                    zadania3 *zadaniaWindow = new zadania3(socket, userId, this);
+                    connect(zadaniaWindow, &zadania3::scoreUpdated, this, [=](int newScore){
+                        if (newScore > testResults[3]) {
+                            testResults[3] = newScore;
+                            updateTotalScore();
+                        }
+                    });
+
+                    if (isEmpty) {
+                        zadaniaWindow->exec();
+                    } else if (score == 6) {
+                        QMessageBox::information(this, "Тест пройден", "Тест 3 пройден на максимальный балл!");
+                        zadaniaWindow->deleteLater();
+                    } else {
+                        QMessageBox msgBox(this);
+                        msgBox.setWindowTitle("Тест пройден");
+                        msgBox.setText("Ваш результат: " + QString::number(score) + " баллов.\nЖелаете перепройти тест?");
+                        QPushButton *yesButton = msgBox.addButton("✅ Да", QMessageBox::YesRole);
+                        QPushButton *noButton  = msgBox.addButton("❌ Нет", QMessageBox::NoRole);
+                        msgBox.exec();
+
+                        if (msgBox.clickedButton() == yesButton) {
+                            zadaniaWindow->exec();
+                        } else {
+                            zadaniaWindow->deleteLater();
+                        }
+                    }
+                }
+
+                else if (testId == 4) {
+                    zadania4 *zadaniaWindow = new zadania4(socket, userId, this);
+                    connect(zadaniaWindow, &zadania4::scoreUpdated, this, [=](int newScore){
+                        if (newScore > testResults[4]) {
+                            testResults[4] = newScore;
+                            updateTotalScore();
+                        }
+                    });
+
+                    if (isEmpty) {
+                        zadaniaWindow->exec();
+                    } else if (score == 5) {
+                        QMessageBox::information(this, "Тест пройден", "Тест 4 пройден на максимальный балл!");
+                        zadaniaWindow->deleteLater();
+                    } else {
+                        QMessageBox msgBox(this);
+                        msgBox.setWindowTitle("Тест пройден");
+                        msgBox.setText("Ваш результат: " + QString::number(score) + " баллов.\nЖелаете перепройти тест?");
+                        QPushButton *yesButton = msgBox.addButton("✅ Да", QMessageBox::YesRole);
+                        QPushButton *noButton  = msgBox.addButton("❌ Нет", QMessageBox::NoRole);
+                        msgBox.exec();
+
+                        if (msgBox.clickedButton() == yesButton) {
+                            zadaniaWindow->exec();
+                        } else {
+                            zadaniaWindow->deleteLater();
+                        }
+                    }
+                }
             }
         }
     }
 }
-
 
 void main_lection::on_easy_question_clicked() {
     QJsonObject req;
@@ -120,22 +237,40 @@ void main_lection::on_easy_question_clicked() {
     socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
     socket->flush();
 
-    waitingForTestId = 1; // ✅ вместо waitingForEasyTest
+    waitingForTestId = 1;
 }
 
 void main_lection::on_middle_question_clicked() {
-    zadania2 *zadaniaWindow = new zadania2(this);
-    zadaniaWindow->exec(); // Открываем zadania2 как модальное окно
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 2;
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+
+    waitingForTestId = 2;
 }
 
 void main_lection::on_hard_question_clicked() {
-    zadania3 *zadaniaWindow = new zadania3(this);
-    zadaniaWindow->exec(); // Открываем zadania3 как модальное окно
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 3;
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+
+    waitingForTestId = 3;
 }
 
 void main_lection::on_code_question_clicked() {
-    zadania4 *zadaniaWindow = new zadania4(this);
-    zadaniaWindow->exec(); // Открываем zadania4 как модальное окно
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 4;
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+
+    waitingForTestId = 4;
 }
 
 void main_lection::on_lection1_clicked() {
@@ -166,29 +301,23 @@ void main_lection::on_exitButton_clicked() {
 }
 
 void main_lection::requestTestResults() {
-    QJsonObject req;
-    req["type"] = "get_result";
-    req["student_id"] = userId;
-    req["test_id"] = 1; // для лёгкого теста
-    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    // Запрашиваем результаты сразу для всех тестов
+    for (int testId = 1; testId <= 4; ++testId) {
+        QJsonObject req;
+        req["type"] = "get_result";
+        req["student_id"] = userId;
+        req["test_id"] = testId;
+        socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    }
     socket->flush();
+}
 
-    QMetaObject::Connection connection;
-    connection = connect(socket, &QTcpSocket::readyRead, this, [=]() mutable {
-        QByteArray data = socket->readAll();
-        QJsonDocument doc = QJsonDocument::fromJson(data);
-        QJsonObject obj = doc.object();
-
-        if (obj["type"] == "get_result") {
-            disconnect(connection);
-
-            if (obj["status"] == "ok") {
-                int score = obj["score"].toInt();
-                ui->two_max_balls_ez->setText(QString::number(score) + " балла");
-            } else {
-                // Если тест ещё не проходили
-                ui->two_max_balls_ez->setText("0 баллов");
-            }
+void main_lection::updateTotalScore() {
+    totalScore = 0;
+    for (auto score : testResults) {
+        if (score >= 0) {
+            totalScore += score;
         }
-    });
+    }
+    ui->max_balls->setText(QString::number(totalScore));
 }

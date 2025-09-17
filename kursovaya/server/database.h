@@ -25,7 +25,7 @@ public:
     QSqlError lastError() const;
     QString hashPassword(const QString &password);
     QList<QVariantMap> getAllUsers();
-    bool saveStudentTestResult(int studentId, int testId, int score, const QString &answer1, const QString &answer2);
+    bool saveStudentTestResult(int studentId, int testId, int score, const QString &answer1, const QString &answer2, const QString &answer3);
     QList<QVariantMap> getQuestionsForTest(int testId);
     QByteArray encryptData(const QString &data);
     QString decryptData(const QByteArray &encryptedData);

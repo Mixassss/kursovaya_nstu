@@ -200,21 +200,39 @@ QList<QVariantMap> Database::getQuestionsForTest(int testId) {
 }
 
 // Сохранить результат теста студента
-bool Database::saveStudentTestResult(int studentId, int testId, int score, const QString &answer1, const QString &answer2) {
+bool Database::saveStudentTestResult(int studentId, int testId, int score,
+                                     const QString &answer1, const QString &answer2,
+                                     const QString &answer3)
+{
     QSqlQuery query(db);
 
-    // Попробуем обновить существующую запись
-    query.prepare(R"(
-        UPDATE student_tests
-        SET score = :score,
-            passed_at = NOW(),
-            answer1 = :answer1,
-            answer2 = :answer2
-        WHERE student_id = :student_id AND test_id = :test_id
-    )");
+    if (testId == 1) {
+        query.prepare(R"(
+            UPDATE student_tests
+            SET score = :score,
+                passed_at = NOW(),
+                answer1 = :answer1,
+                answer2 = :answer2
+            WHERE student_id = :student_id AND test_id = :test_id
+        )");
+        query.bindValue(":answer1", answer1);
+        query.bindValue(":answer2", answer2);
+    } else if (testId == 2 || testId == 3 || testId == 4) {
+        query.prepare(R"(
+            UPDATE student_tests
+            SET score = :score,
+                passed_at = NOW(),
+                answer1 = :answer1,
+                answer2 = :answer2,
+                answer3 = :answer3
+            WHERE student_id = :student_id AND test_id = :test_id
+        )");
+        query.bindValue(":answer1", answer1);
+        query.bindValue(":answer2", answer2);
+        query.bindValue(":answer3", answer3);
+    }
+
     query.bindValue(":score", score);
-    query.bindValue(":answer1", answer1);
-    query.bindValue(":answer2", answer2);
     query.bindValue(":student_id", studentId);
     query.bindValue(":test_id", testId);
 
@@ -223,17 +241,27 @@ bool Database::saveStudentTestResult(int studentId, int testId, int score, const
         return false;
     }
 
-    // Если строка не обновилась (новый пользователь) — вставляем
     if (query.numRowsAffected() == 0) {
-        query.prepare(R"(
-            INSERT INTO student_tests (student_id, test_id, score, passed_at, answer1, answer2)
-            VALUES (:student_id, :test_id, :score, NOW(), :answer1, :answer2)
-        )");
+        if (testId == 1) {
+            query.prepare(R"(
+                INSERT INTO student_tests (student_id, test_id, score, passed_at, answer1, answer2)
+                VALUES (:student_id, :test_id, :score, NOW(), :answer1, :answer2)
+            )");
+            query.bindValue(":answer1", answer1);
+            query.bindValue(":answer2", answer2);
+        } else if (testId == 2 || testId == 3 || testId == 4) {
+            query.prepare(R"(
+                INSERT INTO student_tests (student_id, test_id, score, passed_at, answer1, answer2, answer3)
+                VALUES (:student_id, :test_id, :score, NOW(), :answer1, :answer2, :answer3)
+            )");
+            query.bindValue(":answer1", answer1);
+            query.bindValue(":answer2", answer2);
+            query.bindValue(":answer3", answer3);
+        }
+
         query.bindValue(":student_id", studentId);
         query.bindValue(":test_id", testId);
         query.bindValue(":score", score);
-        query.bindValue(":answer1", answer1);
-        query.bindValue(":answer2", answer2);
 
         if (!query.exec()) {
             qWarning() << "Ошибка вставки результата:" << query.lastError().text();
@@ -243,4 +271,5 @@ bool Database::saveStudentTestResult(int studentId, int testId, int score, const
 
     return true;
 }
+
 

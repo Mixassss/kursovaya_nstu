@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    socket->connectToHost("127.0.0.1", 9850);
+    socket->connectToHost("127.0.0.1", 9878);
 
     connect(socket, &QTcpSocket::connected, this, [](){
         qDebug() << "Connected to server";

@@ -129,32 +129,49 @@ void Handler::handleRequest(const QJsonObject &request)
         int score = request.value("score").toInt();
         QString answer1 = request.value("answer1").toString();
         QString answer2 = request.value("answer2").toString();
+        QString answer3 = request.contains("answer3") ? request.value("answer3").toString() : "";
 
-        bool ok = m_db->saveStudentTestResult(studentId, testId, score, answer1, answer2);
+        bool ok = m_db->saveStudentTestResult(studentId, testId, score, answer1, answer2, answer3);
 
         response["type"] = "save_result";
         response["status"] = ok ? "ok" : "error";
+        response["test_id"] = testId;
+        response["score"] = score;
     }
     else if (cmd == "get_result") {
         int studentId = request.value("student_id").toInt();
         int testId = request.value("test_id").toInt();
 
+        QString sql;
+        if (testId == 1) {
+            sql = "SELECT score, passed_at, answer1, answer2 "
+                  "FROM student_tests WHERE student_id = :sid AND test_id = :tid "
+                  "ORDER BY score DESC, passed_at DESC LIMIT 1";
+        } else if (testId == 2 || testId == 3 || testId == 4) {
+            sql = "SELECT score, passed_at, answer1, answer2, answer3 "
+                  "FROM student_tests WHERE student_id = :sid AND test_id = :tid "
+                  "ORDER BY score DESC, passed_at DESC LIMIT 1";
+        }
+
         QSqlQuery query(m_db->connection());
-        query.prepare("SELECT score, passed_at, answer1, answer2 FROM student_tests "
-                      "WHERE student_id = :sid AND test_id = :tid "
-                      "ORDER BY score DESC, passed_at DESC LIMIT 1"); // берём лучший результат
+        query.prepare(sql);
         query.bindValue(":sid", studentId);
         query.bindValue(":tid", testId);
 
         response["type"] = "get_result";
+        response["test_id"] = testId;   // 🔥 теперь клиент понимает, откуда ответ
+
         if (query.exec() && query.next()) {
             response["status"] = "ok";
             response["score"] = query.value("score").toInt();
             response["passed_at"] = query.value("passed_at").toString();
             response["answer1"] = query.value("answer1").toString();
             response["answer2"] = query.value("answer2").toString();
+            if (testId == 2 || testId == 3 || testId == 4) {
+                response["answer3"] = query.value("answer3").toString();
+            }
         } else {
-            response["status"] = "empty"; // результатов нет
+            response["status"] = "empty";
         }
     }
     else {
