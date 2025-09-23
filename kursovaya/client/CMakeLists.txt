@@ -1,4 +1,4 @@
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
 
 qt_standard_project_setup()
 
@@ -34,10 +34,12 @@ qt_add_executable(client_app
     lec3_test4.cpp lec3_test4.h lec3_test4.ui
     add_users.cpp add_users.h add_users.ui
     delete_users.cpp delete_users.h delete_users.ui
+    finish_test.h finish_test.cpp finish_test.ui
+    results.h results.cpp results.ui
 )
 
 target_link_libraries(client_app
-    PRIVATE Qt::Core Qt::Widgets Qt::Network
+    PRIVATE Qt::Core Qt::Widgets Qt::Network Qt::Sql
 )
 
 include(GNUInstallDirs)

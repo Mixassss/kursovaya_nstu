@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     }
 
     Server server(&db);
-    server.start(9878);
+    server.start(9938);
 
     return app.exec();  // запускаем цикл обработки событий
 }

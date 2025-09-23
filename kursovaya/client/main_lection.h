@@ -34,6 +34,7 @@ private slots:
     void onServerResponse();
     void requestTestResults();
     void updateTotalScore();  // обновляет сумму баллов и выводит в max_balls
+    void on_finish_test_clicked();
 
 private:
     Ui::main_lection *ui;

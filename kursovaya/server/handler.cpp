@@ -133,10 +133,20 @@ void Handler::handleRequest(const QJsonObject &request)
 
         bool ok = m_db->saveStudentTestResult(studentId, testId, score, answer1, answer2, answer3);
 
-        response["type"] = "save_result";
-        response["status"] = ok ? "ok" : "error";
+        response["type"] = "get_result";   // ⚡ меняем тип на get_result
         response["test_id"] = testId;
-        response["score"] = score;
+
+        if (ok) {
+            response["status"] = "ok";
+            response["score"] = score;
+            response["passed_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+            response["answer1"] = answer1;
+            response["answer2"] = answer2;
+            if (testId == 2 || testId == 3 || testId == 4)
+                response["answer3"] = answer3;
+        } else {
+            response["status"] = "error";
+        }
     }
     else if (cmd == "get_result") {
         int studentId = request.value("student_id").toInt();

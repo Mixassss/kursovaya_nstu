@@ -10,6 +10,7 @@
 #include "dialog_window_exit.h"
 #include <QJsonDocument>
 #include <QJsonObject>
+#include "finish_test.h"
 
 
 main_lection::main_lection(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
@@ -43,6 +44,9 @@ main_lection::main_lection(QTcpSocket *sharedSocket, int currentUserId, QWidget 
     // Подключаем сигнал clicked() кнопки "Выход из системы" к слоту
     connect(ui->quit_system, &QPushButton::clicked, this, &main_lection::on_exitButton_clicked);
 
+    connect(ui->itogovoe_testirovanie, &QCommandLinkButton::clicked, this, &main_lection::on_finish_test_clicked);
+
+
     connect(socket, &QTcpSocket::readyRead, this, &main_lection::onServerResponse);
 
     requestTestResults();
@@ -53,7 +57,6 @@ main_lection::~main_lection() {
 }
 
 void main_lection::onServerResponse() {
-    // Добавляем новые данные в буфер
     socketBuffer.append(socket->readAll());
 
     int index;
@@ -61,9 +64,7 @@ void main_lection::onServerResponse() {
         QByteArray line = socketBuffer.left(index);
         socketBuffer.remove(0, index + 1);
 
-        if (line.trimmed().isEmpty()) {
-            continue;
-        }
+        if (line.trimmed().isEmpty()) continue;
 
         QJsonParseError error;
         QJsonDocument doc = QJsonDocument::fromJson(line, &error);
@@ -78,25 +79,33 @@ void main_lection::onServerResponse() {
         }
 
         QJsonObject obj = doc.object();
+        qDebug() << "[CLIENT] Получен ответ от сервера:" << obj;
 
-        // Обработка ответа (взята из вашей оригинальной реализации)
         if (obj["type"] == "get_result" || obj["type"] == "save_result") {
             QString status = obj["status"].toString();
             int score = obj["score"].toInt();
             int testId = obj["test_id"].toInt();
 
-            bool isEmpty = false; // флаг: тест ещё не проходили
+            qDebug() << "[CLIENT] waitingForTestId =" << waitingForTestId
+                     << " testId =" << testId
+                     << " status =" << status
+                     << " score =" << score;
 
-            // --- Сохраняем результат ---
+            bool isEmpty = false;
+
             if (status == "ok") {
-                if (testResults[testId] != score) {  // обновляем только если результат изменился
-                    testResults[testId] = score;
-                    updateTotalScore();
+                if (testId >= 1 && testId <= 4) {   // 🔹 только 1–4 тесты влияют на max_balls
+                    if (testResults[testId] != score) {
+                        testResults[testId] = score;
+                        updateTotalScore();
+                    }
                 }
             } else if (status == "empty") {
-                if (testResults[testId] != -1) {     // чтобы не перезаписывать лишний раз
-                    testResults[testId] = -1;
-                    updateTotalScore();
+                if (testId >= 1 && testId <= 4) {
+                    if (testResults[testId] != -1) {
+                        testResults[testId] = -1;
+                        updateTotalScore();
+                    }
                 }
                 isEmpty = true;
             }
@@ -104,6 +113,22 @@ void main_lection::onServerResponse() {
             // --- Если ждём этот тест, открываем окно ---
             if (waitingForTestId == testId) {
                 waitingForTestId = 0;
+
+                if (testId == 5) {
+                    if (status == "ok") {
+                        QMessageBox::information(this, "Финальный тест",
+                                                 "Вы уже проходили финальный тест.\nВаш результат: "
+                                                     + QString::number(score) + " из 15.");
+                    } else if (status == "empty") {
+                        finish_test *finTest = new finish_test(socket, userId, 5, this);
+                        connect(finTest, &finish_test::scoreUpdated, this, [=](int finalScore){
+                            QMessageBox::information(this, "Финальный тест",
+                                                     "Финальный тест завершён!\n"
+                                                     "Ваш результат: " + QString::number(finalScore) + " из 15.");
+                        });
+                        finTest->exec();
+                    }
+                }
 
                 if (testId == 1) {
                     zadania1 *zadaniaWindow = new zadania1(socket, userId, this);
@@ -271,6 +296,24 @@ void main_lection::on_code_question_clicked() {
     socket->flush();
 
     waitingForTestId = 4;
+}
+
+void main_lection::on_finish_test_clicked() {
+    if (totalScore < 10) {
+        QMessageBox::warning(this, "Недостаточно баллов",
+                             "Чтобы пройти финальный тест, нужно набрать минимум 10 баллов "
+                             "за предыдущие тесты.");
+        return;
+    }
+
+    QJsonObject req;
+    req["type"] = "get_result";
+    req["student_id"] = userId;
+    req["test_id"] = 5;
+    socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
+    socket->flush();
+
+    waitingForTestId = 5;
 }
 
 void main_lection::on_lection1_clicked() {

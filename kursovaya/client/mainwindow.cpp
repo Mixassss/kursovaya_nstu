@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFrame>
+#include <qt6/QtCore/qlogging.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    socket->connectToHost("127.0.0.1", 9878);
+    socket->connectToHost("127.0.0.1", 9938);
 
     connect(socket, &QTcpSocket::connected, this, [](){
         qDebug() << "Connected to server";
@@ -91,11 +92,15 @@ void MainWindow::on_loginButton_clicked() {
         QString position = authDialog.getUserPosition();
 
         if (position == "admin") {
-            window_admin *adminWindow = new window_admin(socket, nullptr); // nullptr как родитель
+            auto *adminWindow = new window_admin(socket, "admin", nullptr);
             adminWindow->setAttribute(Qt::WA_DeleteOnClose);
-            adminWindow->show(); // show() вместо exec(), чтобы не блокировать MainWindow
-        } else {
-            main_lection *lectionWindow = new main_lection(socket, authDialog.getUserId(), nullptr);
+            adminWindow->show();
+        } else if (position == "teacher") {
+            auto *teacherWindow = new window_admin(socket, "teacher", nullptr);
+            teacherWindow->setAttribute(Qt::WA_DeleteOnClose);
+            teacherWindow->show();
+        } else if (position == "student") {
+            auto *lectionWindow = new main_lection(socket, authDialog.getUserId(), nullptr);
             lectionWindow->setAttribute(Qt::WA_DeleteOnClose);
             lectionWindow->show();
         }

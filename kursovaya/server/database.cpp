@@ -272,4 +272,3 @@ bool Database::saveStudentTestResult(int studentId, int testId, int score,
     return true;
 }
 
-
