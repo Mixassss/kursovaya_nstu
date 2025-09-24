@@ -23,7 +23,7 @@ Dialog::Dialog(QWidget *parent)
 
     connect(socket, &QTcpSocket::readyRead, this, &Dialog::onServerResponse);
 
-    socket->connectToHost("127.0.0.1", 9938); // подключаемся к серверу
+    socket->connectToHost("127.0.0.1", 9957); // подключаемся к серверу
 }
 
 Dialog::~Dialog() {

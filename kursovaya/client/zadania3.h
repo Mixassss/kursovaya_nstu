@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRadioButton>
+#include <QMessageBox>
 
 namespace Ui {
 class zadania3;
@@ -19,13 +20,12 @@ public:
     ~zadania3();
 
 signals:
-    void scoreUpdated(int score);
+    void scoreUpdated(int newScore);
 
 private slots:
     void updateSubmitButtonState();
     void on_pushButton_6_clicked();
     void updateButtonsVisibility();
-    void on_backButton_clicked();
     void onBackClicked();
     void on_pushButton_2_clicked();
     void onServerResponse();

@@ -11,10 +11,13 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include "finish_test.h"
+#include <QTextDocument>
+#include <QtPrintSupport/QPrinter>
+#include <QFileDialog>
 
 
-main_lection::main_lection(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
-    : QDialog(parent), ui(new Ui::main_lection), socket(sharedSocket), userId(currentUserId)
+main_lection::main_lection(QTcpSocket *sharedSocket, int currentUserId, QString currentUsername, QWidget *parent)
+    : QDialog(parent), ui(new Ui::main_lection), socket(sharedSocket), userId(currentUserId), username(currentUsername)
 {
     ui->setupUi(this);
 
@@ -122,9 +125,20 @@ void main_lection::onServerResponse() {
                     } else if (status == "empty") {
                         finish_test *finTest = new finish_test(socket, userId, 5, this);
                         connect(finTest, &finish_test::scoreUpdated, this, [=](int finalScore){
-                            QMessageBox::information(this, "Финальный тест",
-                                                     "Финальный тест завершён!\n"
-                                                     "Ваш результат: " + QString::number(finalScore) + " из 15.");
+                            QMessageBox msgBox(this);
+                            msgBox.setWindowTitle("Поздравляем!");
+                            msgBox.setText("🎉 Поздравляем, " + username + "!\n"
+                                                                           "Вы завершили весь курс!\n"
+                                                                           "Чтобы скачать сертификат, нажмите кнопку ниже.");
+
+                            QPushButton *downloadBtn = msgBox.addButton("📜 Скачать сертификат", QMessageBox::AcceptRole);
+                            msgBox.addButton("Закрыть", QMessageBox::RejectRole);
+
+                            msgBox.exec();
+
+                            if (msgBox.clickedButton() == downloadBtn) {
+                                generateCertificate(finalScore);
+                            }
                         });
                         finTest->exec();
                     }
@@ -299,9 +313,9 @@ void main_lection::on_code_question_clicked() {
 }
 
 void main_lection::on_finish_test_clicked() {
-    if (totalScore < 10) {
+    if (totalScore < 14) {
         QMessageBox::warning(this, "Недостаточно баллов",
-                             "Чтобы пройти финальный тест, нужно набрать минимум 10 баллов "
+                             "Чтобы пройти финальный тест, нужно набрать минимум 14 баллов "
                              "за предыдущие тесты.");
         return;
     }
@@ -363,4 +377,41 @@ void main_lection::updateTotalScore() {
         }
     }
     ui->max_balls->setText(QString::number(totalScore));
+}
+
+void main_lection::generateCertificate(int finalScore) {
+    QString html = QString(
+                       "<h1 style='text-align:center;'>СЕРТИФИКАТ</h1>"
+                       "<p style='text-align:center;'>Настоящим подтверждается, что студент <b>%1</b></p>"
+                       "<p style='text-align:center;'>успешно прошёл курс «Основы программирования».</p>"
+                       "<p style='text-align:center;'>Результаты:</p>"
+                       "<ul>"
+                       "<li>Тест 1: %2 баллов</li>"
+                       "<li>Тест 2: %3 баллов</li>"
+                       "<li>Тест 3: %4 баллов</li>"
+                       "<li>Тест 4: %5 баллов</li>"
+                       "<li>Финальный тест: %6 из 15</li>"
+                       "</ul>"
+                       "<p style='text-align:center; margin-top:30px;'>Желаем успехов в дальнейшем обучении!</p>"
+                       )
+                       .arg(username)              // 🔹 логин вместо ID
+                       .arg(testResults[1])
+                       .arg(testResults[2])
+                       .arg(testResults[3])
+                       .arg(testResults[4])
+                       .arg(finalScore);
+
+    QTextDocument doc;
+    doc.setHtml(html);
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Сохранить сертификат", "certificate.pdf", "PDF Files (*.pdf)");
+    if (fileName.isEmpty()) return;
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+
+    doc.print(&printer);
+
+    QMessageBox::information(this, "Сертификат сохранён", "Сертификат успешно сохранён в файл:\n" + fileName);
 }

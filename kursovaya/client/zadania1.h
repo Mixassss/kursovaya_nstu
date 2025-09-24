@@ -24,7 +24,6 @@ signals:
 private slots:
     void on_pushButton_4_clicked();
     void on_pushButton_5_clicked();
-    void on_backButton_clicked();
     void onBackClicked();
     void onServerResponse();
     void updateSubmitButtonState();

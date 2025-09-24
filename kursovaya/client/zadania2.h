@@ -24,7 +24,6 @@ signals:
 
 private slots:
     void updateSubmitButtonState();
-    void on_backButton_clicked();
     void onBackClicked();
     void on_pushButton_2_clicked();   // «Пройти ещё раз»
     void on_pushButton_6_clicked();   // «Ответить»

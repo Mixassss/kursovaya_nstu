@@ -3,6 +3,7 @@
 #include "test1.h"
 #include <QMessageBox>
 #include <QJsonDocument>
+#include <QJsonArray>
 
 zadania1::zadania1(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
     : QDialog(parent), ui(new Ui::zadania1), socket(sharedSocket), userId(currentUserId)
@@ -13,9 +14,7 @@ zadania1::zadania1(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
 
     // Скрываем навигационные кнопки
     ui->pushButton_5->setVisible(false);
-    ui->pushButton_2->setVisible(false);
     ui->pushButton_3->setVisible(false);
-    ui->pushButton->setVisible(false);
 
     ui->pushButton_4->setEnabled(false);
 
@@ -32,11 +31,9 @@ zadania1::zadania1(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
         connect(btn, &QRadioButton::toggled, this, &zadania1::updateSubmitButtonState);
 
     // Кнопки
-    connect(ui->pushButton, &QPushButton::clicked, this, &zadania1::on_backButton_clicked);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &zadania1::onBackClicked);
     connect(ui->pushButton_5, &QPushButton::clicked, this, &zadania1::on_pushButton_5_clicked);
     connect(ui->pushButton_4, &QPushButton::clicked, this, &zadania1::on_pushButton_4_clicked);
-
     connect(socket, &QTcpSocket::readyRead, this, &zadania1::onServerResponse);
 
     // Запросим последний результат
@@ -90,17 +87,21 @@ void zadania1::sendSaveResult(int score) {
     if (ui->AnswerC_2->isChecked()) answer2 = "C";
     if (ui->AnswerD_2->isChecked()) answer2 = "D";
 
+    QJsonArray answers;
+    answers.append(answer1);
+    answers.append(answer2);
+
     QJsonObject req;
     req["type"] = "save_result";
     req["student_id"] = userId;
     req["test_id"] = 1;
     req["score"] = score;
-    req["answer1"] = answer1;
-    req["answer2"] = answer2;
+    req["answers"] = answers;
 
     socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
     socket->flush();
 }
+
 
 // ===================== логика теста =====================
 
@@ -122,9 +123,15 @@ void zadania1::on_pushButton_4_clicked() {
     lockAnswers();
     updateButtonsVisibility();
 
-    sendSaveResult(score);   // сохраняем результат всегда
+    sendSaveResult(score);
     alreadyPassed = true;
-    emit scoreUpdated(score); // уведомляем main_lection
+    emit scoreUpdated(score);
+
+    if (score == 2) {
+        QMessageBox::information(this, "Поздравляем",
+                                 "Поздравляем! Тест пройден на 2 из 2.");
+        this->close(); // Закрываем текущее окно zadania1
+    }
 }
 
 void zadania1::updateSubmitButtonState() {
@@ -154,14 +161,10 @@ void zadania1::updateButtonsVisibility() {
     // Логика кнопок
     if (firstGroupCorrect && secondGroupCorrect) {
         ui->pushButton_5->setVisible(false); // перепройти нельзя
-        ui->pushButton_2->setVisible(true);
         ui->pushButton_3->setVisible(false);
-        ui->pushButton->setVisible(true);
     } else {
         ui->pushButton_5->setVisible(true); // можно перепройти
-        ui->pushButton_2->setVisible(firstGroupCorrect || secondGroupCorrect);
         ui->pushButton_3->setVisible(true);
-        ui->pushButton->setVisible(true);
     }
 }
 
@@ -175,11 +178,14 @@ void zadania1::onServerResponse() {
     if (obj["type"] == "get_result") {
         if (obj["status"] == "ok") {
             int score = obj["score"].toInt();
-            lastAnswer1 = obj["answer1"].toString();
-            lastAnswer2 = obj["answer2"].toString();
+            QJsonArray arr = obj["answers"].toArray();
+            if (arr.size() >= 2) {
+                lastAnswer1 = arr.at(0).toString();
+                lastAnswer2 = arr.at(1).toString();
+                alreadyPassed = true;
+                restoreAnswersAndHighlight(lastAnswer1, lastAnswer2);
+            }
 
-            alreadyPassed = true;
-            restoreAnswersAndHighlight(lastAnswer1, lastAnswer2);
             ui->pushButton_4->setVisible(false);
             emit scoreUpdated(score);
         } else if (obj["status"] == "empty") {
@@ -199,12 +205,9 @@ void zadania1::on_pushButton_5_clicked() {
     alreadyPassed = false;   // сбрасываем статус
     resetAnswers();          // сбрасываем ответы
     ui->pushButton_5->setVisible(false);
-    ui->pushButton_2->setVisible(false);
     ui->pushButton_3->setVisible(false);
     ui->pushButton_4->setVisible(true);
 }
-
-void zadania1::on_backButton_clicked() { reject(); }
 
 void zadania1::onBackClicked() {
     test1 *lectionWindow = new test1();

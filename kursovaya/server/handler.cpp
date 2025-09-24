@@ -127,41 +127,87 @@ void Handler::handleRequest(const QJsonObject &request)
         int studentId = request.value("student_id").toInt();
         int testId = request.value("test_id").toInt();
         int score = request.value("score").toInt();
-        QString answer1 = request.value("answer1").toString();
-        QString answer2 = request.value("answer2").toString();
-        QString answer3 = request.contains("answer3") ? request.value("answer3").toString() : "";
 
-        bool ok = m_db->saveStudentTestResult(studentId, testId, score, answer1, answer2, answer3);
+        QVector<QString> answers;
+        if (request.contains("answers") && request.value("answers").isArray()) {
+            QJsonArray arr = request.value("answers").toArray();
+            for (const QJsonValue &v : arr) {
+                answers.append(v.toString());
+            }
+        }
 
-        response["type"] = "get_result";   // ⚡ меняем тип на get_result
+        bool ok = m_db->saveStudentTestResult(studentId, testId, score, answers);
+
+        response["type"] = "get_result";
         response["test_id"] = testId;
-
         if (ok) {
             response["status"] = "ok";
             response["score"] = score;
             response["passed_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
-            response["answer1"] = answer1;
-            response["answer2"] = answer2;
-            if (testId == 2 || testId == 3 || testId == 4)
-                response["answer3"] = answer3;
+
+            QJsonArray arr;
+            for (const QString &ans : answers) arr.append(ans);
+            response["answers"] = arr;
         } else {
             response["status"] = "error";
+        }
+    }
+    else if (cmd == "list_results") {
+        QJsonArray resultsArray;
+        QSqlQuery query(m_db->connection());
+
+        query.prepare(R"(
+        SELECT s.student_id, s.test_id, s.score, s.passed_at,
+               s.answer1, s.answer2, s.answer3, s.answer4, s.answer5,
+               s.answer6, s.answer7, s.answer8, s.answer9, s.answer10,
+               u.login
+        FROM student_tests s
+        JOIN users u ON s.student_id = u.id
+        ORDER BY s.passed_at DESC
+    )");
+
+        if (query.exec()) {
+            while (query.next()) {
+                QJsonObject resultObj;
+                resultObj["login"] = query.value("login").toString();
+                resultObj["test_id"] = query.value("test_id").toInt();
+                resultObj["score"] = query.value("score").toInt();
+                resultObj["passed_at"] = query.value("passed_at").toString();
+
+                QJsonArray answers;
+                for (int i = 1; i <= 10; ++i) {
+                    QString ans = query.value(QString("answer%1").arg(i)).toString();
+                    if (!ans.isEmpty()) {
+                        answers.append(ans);
+                    }
+                }
+                resultObj["answers"] = answers;
+
+                resultsArray.append(resultObj);
+            }
+
+            response["type"] = "list_results";
+            response["status"] = "ok";
+            response["results"] = resultsArray;
+        } else {
+            response["status"] = "error";
+            response["reason"] = "Failed to fetch results";
         }
     }
     else if (cmd == "get_result") {
         int studentId = request.value("student_id").toInt();
         int testId = request.value("test_id").toInt();
 
-        QString sql;
-        if (testId == 1) {
-            sql = "SELECT score, passed_at, answer1, answer2 "
-                  "FROM student_tests WHERE student_id = :sid AND test_id = :tid "
-                  "ORDER BY score DESC, passed_at DESC LIMIT 1";
-        } else if (testId == 2 || testId == 3 || testId == 4) {
-            sql = "SELECT score, passed_at, answer1, answer2, answer3 "
-                  "FROM student_tests WHERE student_id = :sid AND test_id = :tid "
-                  "ORDER BY score DESC, passed_at DESC LIMIT 1";
-        }
+        // Берем максимум answer1..answer10 (универсально для всех тестов)
+        QString sql = R"(
+        SELECT score, passed_at,
+               answer1, answer2, answer3, answer4, answer5,
+               answer6, answer7, answer8, answer9, answer10
+        FROM student_tests
+        WHERE student_id = :sid AND test_id = :tid
+        ORDER BY score DESC, passed_at DESC
+        LIMIT 1
+    )";
 
         QSqlQuery query(m_db->connection());
         query.prepare(sql);
@@ -169,17 +215,22 @@ void Handler::handleRequest(const QJsonObject &request)
         query.bindValue(":tid", testId);
 
         response["type"] = "get_result";
-        response["test_id"] = testId;   // 🔥 теперь клиент понимает, откуда ответ
+        response["test_id"] = testId;
 
         if (query.exec() && query.next()) {
             response["status"] = "ok";
             response["score"] = query.value("score").toInt();
             response["passed_at"] = query.value("passed_at").toString();
-            response["answer1"] = query.value("answer1").toString();
-            response["answer2"] = query.value("answer2").toString();
-            if (testId == 2 || testId == 3 || testId == 4) {
-                response["answer3"] = query.value("answer3").toString();
+
+            // Собираем ответы в массив
+            QJsonArray answers;
+            for (int i = 1; i <= 10; ++i) {
+                QString ans = query.value(QString("answer%1").arg(i)).toString();
+                if (!ans.isEmpty()) {   // добавляем только непустые
+                    answers.append(ans);
+                }
             }
+            response["answers"] = answers;
         } else {
             response["status"] = "empty";
         }

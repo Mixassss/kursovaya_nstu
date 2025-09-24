@@ -81,6 +81,7 @@ void results::loadResults()
     QJsonObject req;
     req["type"] = "list_results";
     QByteArray data = QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n";
+    qDebug() << "Sending request to server:" << QString(QJsonDocument(req).toJson(QJsonDocument::Compact)); // Логирование отправки запроса
     socket->write(data);
     socket->flush();
 
@@ -92,7 +93,13 @@ void results::loadResults()
 
     QByteArray respData = socket->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(respData);
-    if (!doc.isObject()) return;
+    if (!doc.isObject()) {
+        qWarning() << "Ответ не является JSON объектом!";
+        return;
+    }
+
+    // Логирование полученного ответа
+    qDebug() << "Received response from server:" << doc.toJson(QJsonDocument::Indented);
 
     QJsonObject obj = doc.object();
     if (obj["type"] == "list_results" && obj["status"] == "ok") {
@@ -106,18 +113,36 @@ void results::loadResults()
             int score = row["score"].toInt();
 
             QStringList answers;
-            for (int i = 1; i <= 10; i++) {
-                QString ans = row[QString("answer%1").arg(i)].toString();
-                if (!ans.isEmpty()) answers << ans;
+            if (row.contains("answers") && row["answers"].isArray()) {
+                QJsonArray arr = row["answers"].toArray();
+                for (const QJsonValue &val : arr) {
+                    if (val.isString())
+                        answers << val.toString();
+                }
+            }
+
+            // Логирование обработки каждого результата
+            qDebug() << "Processing result for Login:" << login
+                     << "Test ID:" << testId
+                     << "Score:" << score
+                     << "Answers:" << (answers.isEmpty() ? "No answers" : answers.join(", "));
+
+            // Логирование пустых ответов
+            if (answers.isEmpty()) {
+                qDebug() << "No answers for Login:" << login << "Test ID:" << testId;
             }
 
             QList<QStandardItem*> items;
             items << new QStandardItem(login)
                   << new QStandardItem(QString::number(testId))
                   << new QStandardItem(QString::number(score))
-                  << new QStandardItem(answers.join(", "));
+                  << new QStandardItem(answers.isEmpty() ? "Нет ответов" : answers.join(", "));
 
+            // Логирование перед добавлением в модель
+            qDebug() << "Adding row to model:" << login << testId << score << (answers.isEmpty() ? "Нет ответов" : answers.join(", "));
             model->appendRow(items);
         }
     }
 }
+
+

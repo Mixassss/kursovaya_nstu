@@ -1,4 +1,4 @@
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Network Sql PrintSupport)
 
 qt_standard_project_setup()
 
@@ -39,7 +39,7 @@ qt_add_executable(client_app
 )
 
 target_link_libraries(client_app
-    PRIVATE Qt::Core Qt::Widgets Qt::Network Qt::Sql
+    PRIVATE Qt::Core Qt::Widgets Qt::Network Qt::Sql Qt::PrintSupport
 )
 
 include(GNUInstallDirs)

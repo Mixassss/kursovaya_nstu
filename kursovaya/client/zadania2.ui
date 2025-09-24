@@ -16,36 +16,10 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(36, 31, 49);</string>
   </property>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>660</y>
-     <width>171</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Вернуться на главную</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_5">
-   <property name="geometry">
-    <rect>
-     <x>600</x>
-     <y>660</y>
-     <width>151</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Следующий вопрос</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButton_2">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>160</x>
      <y>660</y>
      <width>161</width>
      <height>41</height>
@@ -696,7 +670,7 @@
   <widget class="QPushButton" name="pushButton_3">
    <property name="geometry">
     <rect>
-     <x>40</x>
+     <x>510</x>
      <y>660</y>
      <width>161</width>
      <height>41</height>

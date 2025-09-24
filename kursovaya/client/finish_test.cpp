@@ -185,13 +185,11 @@ void finish_test::sendSaveResult() {
     req["test_id"] = testId;
     req["score"] = score;
 
-    for (int i = 0; i < allQuestions.size(); ++i) {
-        int qNum = allQuestions[i].mid(1).toInt();
-        if (qNum >= 1 && qNum <= givenAnswers.size()) {
-            QString key = QString("answer%1").arg(qNum);
-            req[key] = givenAnswers[i];
-        }
+    QJsonArray arr;
+    for (const QString &ans : givenAnswers) {
+        arr.append(ans);
     }
+    req["answers"] = arr;
 
     socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
     socket->flush();

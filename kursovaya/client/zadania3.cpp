@@ -1,6 +1,7 @@
 #include "zadania3.h"
 #include "ui_zadania3.h"
 #include "test1.h"
+#include <QJsonArray>
 
 zadania3::zadania3(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
     : QDialog(parent), ui(new Ui::zadania3), socket(sharedSocket), userId(currentUserId)
@@ -9,9 +10,7 @@ zadania3::zadania3(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
 
     alreadyPassed = false;
 
-    ui->pushButton->setVisible(false);
     ui->pushButton_2->setVisible(false);
-    ui->pushButton_5->setVisible(false);
     ui->pushButton_3->setVisible(false);
     ui->pushButton_6->setEnabled(false);
 
@@ -23,7 +22,6 @@ zadania3::zadania3(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
     for (auto btn : buttons)
         connect(btn, &QRadioButton::toggled, this, &zadania3::updateSubmitButtonState);
 
-    connect(ui->pushButton,   &QPushButton::clicked, this, &zadania3::on_backButton_clicked);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &zadania3::onBackClicked);
     connect(ui->pushButton_2, &QPushButton::clicked, this, &zadania3::on_pushButton_2_clicked);
     connect(ui->pushButton_6, &QPushButton::clicked, this, &zadania3::on_pushButton_6_clicked);
@@ -91,14 +89,17 @@ void zadania3::sendSaveResult(int score) {
     if (ui->AnswerC_3->isChecked()) answer3 = "C";
     if (ui->AnswerD_3->isChecked()) answer3 = "D";
 
+    QJsonArray answers;
+    answers.append(answer1);
+    answers.append(answer2);
+    answers.append(answer3);
+
     QJsonObject req;
     req["type"] = "save_result";
     req["student_id"] = userId;
     req["test_id"] = 3;
     req["score"] = score;
-    req["answer1"] = answer1;
-    req["answer2"] = answer2;
-    req["answer3"] = answer3;
+    req["answers"] = answers;
 
     socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
     socket->flush();
@@ -132,8 +133,8 @@ void zadania3::on_pushButton_6_clicked() {
     bool thirdCorrect = ui->AnswerD_3->isChecked();
 
     int score = 0;
-    if (firstCorrect) score+= 2;
-    if (secondCorrect) score+= 2;
+    if (firstCorrect) score += 2;
+    if (secondCorrect) score += 2;
     if (thirdCorrect) score += 2;
     if (score > 6) score = 6;
 
@@ -145,8 +146,14 @@ void zadania3::on_pushButton_6_clicked() {
         alreadyPassed = true;
         emit scoreUpdated(score);
     }
-}
 
+    // 🔹 Проверка на максимальный результат
+    if (score == 6) {
+        QMessageBox::information(this, "Поздравляем",
+                                 "Поздравляем! Тест 3 пройден на 6 из 6.");
+        this->close();
+    }
+}
 
 // ===================== сервер =====================
 
@@ -158,12 +165,14 @@ void zadania3::onServerResponse() {
     if (obj["type"] == "get_result") {
         if (obj["status"] == "ok") {
             int score = obj["score"].toInt();
-            lastAnswer1 = obj["answer1"].toString();
-            lastAnswer2 = obj["answer2"].toString();
-            lastAnswer3 = obj["answer3"].toString();
-
-            alreadyPassed = true;
-            restoreAnswersAndHighlight(lastAnswer1, lastAnswer2, lastAnswer3);
+            QJsonArray arr = obj["answers"].toArray();
+            if (arr.size() >= 3) {
+                lastAnswer1 = arr.at(0).toString();
+                lastAnswer2 = arr.at(1).toString();
+                lastAnswer3 = arr.at(2).toString();
+                alreadyPassed = true;
+                restoreAnswersAndHighlight(lastAnswer1, lastAnswer2, lastAnswer3);
+            }
             ui->pushButton_6->setVisible(false);
             emit scoreUpdated(score);
         } else if (obj["status"] == "empty") {
@@ -208,31 +217,18 @@ void zadania3::updateButtonsVisibility() {
 
     // Логика кнопок
     if (firstCorrect && secondCorrect && thirdCorrect) {
-        ui->pushButton->setVisible(true);
-        ui->pushButton_5->setVisible(true);
-        ui->pushButton_2->setVisible(false);
-        ui->pushButton_3->setVisible(false);
-    } else if (firstCorrect || secondCorrect || thirdCorrect) {
-        ui->pushButton->setVisible(true);
-        ui->pushButton_5->setVisible(true);
         ui->pushButton_2->setVisible(true);
-        ui->pushButton_3->setVisible(false);
+        ui->pushButton_3->setVisible(true);
+    } else if (firstCorrect || secondCorrect || thirdCorrect) {
+        ui->pushButton_2->setVisible(true);
+        ui->pushButton_3->setVisible(true);
     } else {
-        ui->pushButton->setVisible(true);
-        ui->pushButton_5->setVisible(false);
-        ui->pushButton_2->setVisible(false);
+        ui->pushButton_2->setVisible(true);
         ui->pushButton_3->setVisible(true);
     }
 }
 
 // ===================== кнопки =====================
-
-void zadania3::on_backButton_clicked() {
-    if (alreadyPassed) {
-        restoreAnswersAndHighlight(lastAnswer1, lastAnswer2, lastAnswer3);
-    }
-    reject();
-}
 
 void zadania3::onBackClicked() {
     if (alreadyPassed) {
@@ -248,7 +244,6 @@ void zadania3::on_pushButton_2_clicked() {
     alreadyPassed = false;
     resetAnswers();
 
-    ui->pushButton_5->setVisible(false);
     ui->pushButton_2->setVisible(false);
     ui->pushButton_3->setVisible(false);
     ui->pushButton_6->setVisible(true);

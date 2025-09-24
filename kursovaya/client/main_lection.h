@@ -6,7 +6,6 @@
 #include <QTcpSocket>
 #include <QMessageBox>
 #include <QMap>
-#include <qt6/QtCore/qmap.h>
 #include <QByteArray>
 
 namespace Ui {
@@ -18,7 +17,7 @@ class main_lection : public QDialog
     Q_OBJECT
 
 public:
-    explicit main_lection(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent = nullptr);
+    explicit main_lection(QTcpSocket *sharedSocket, int currentUserId, QString currentUsername, QWidget *parent = nullptr);
     ~main_lection();
 
 private slots:
@@ -35,11 +34,13 @@ private slots:
     void requestTestResults();
     void updateTotalScore();  // обновляет сумму баллов и выводит в max_balls
     void on_finish_test_clicked();
+    void generateCertificate(int finalScore);  // 🔹 новый слот
 
 private:
     Ui::main_lection *ui;
     QTcpSocket *socket;
     int userId;
+    QString username;   // 🔹 логин пользователя
     int waitingForTestId = 0;
 
     int totalScore = 0;

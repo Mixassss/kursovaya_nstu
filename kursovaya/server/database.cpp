@@ -201,74 +201,63 @@ QList<QVariantMap> Database::getQuestionsForTest(int testId) {
 
 // Сохранить результат теста студента
 bool Database::saveStudentTestResult(int studentId, int testId, int score,
-                                     const QString &answer1, const QString &answer2,
-                                     const QString &answer3)
+                                     const QVector<QString> &answers)
 {
-    QSqlQuery query(db);
-
-    if (testId == 1) {
-        query.prepare(R"(
-            UPDATE student_tests
-            SET score = :score,
-                passed_at = NOW(),
-                answer1 = :answer1,
-                answer2 = :answer2
-            WHERE student_id = :student_id AND test_id = :test_id
-        )");
-        query.bindValue(":answer1", answer1);
-        query.bindValue(":answer2", answer2);
-    } else if (testId == 2 || testId == 3 || testId == 4) {
-        query.prepare(R"(
-            UPDATE student_tests
-            SET score = :score,
-                passed_at = NOW(),
-                answer1 = :answer1,
-                answer2 = :answer2,
-                answer3 = :answer3
-            WHERE student_id = :student_id AND test_id = :test_id
-        )");
-        query.bindValue(":answer1", answer1);
-        query.bindValue(":answer2", answer2);
-        query.bindValue(":answer3", answer3);
-    }
-
-    query.bindValue(":score", score);
-    query.bindValue(":student_id", studentId);
-    query.bindValue(":test_id", testId);
-
-    if (!query.exec()) {
-        qWarning() << "Ошибка обновления результата:" << query.lastError().text();
+    if (!db.isOpen()) {
+        qWarning() << "База данных не открыта!";
         return false;
     }
 
-    if (query.numRowsAffected() == 0) {
-        if (testId == 1) {
-            query.prepare(R"(
-                INSERT INTO student_tests (student_id, test_id, score, passed_at, answer1, answer2)
-                VALUES (:student_id, :test_id, :score, NOW(), :answer1, :answer2)
-            )");
-            query.bindValue(":answer1", answer1);
-            query.bindValue(":answer2", answer2);
-        } else if (testId == 2 || testId == 3 || testId == 4) {
-            query.prepare(R"(
-                INSERT INTO student_tests (student_id, test_id, score, passed_at, answer1, answer2, answer3)
-                VALUES (:student_id, :test_id, :score, NOW(), :answer1, :answer2, :answer3)
-            )");
-            query.bindValue(":answer1", answer1);
-            query.bindValue(":answer2", answer2);
-            query.bindValue(":answer3", answer3);
-        }
+    // Максимум 10 ответов (answer1..answer10)
+    QStringList cols = {"student_id", "test_id", "score", "passed_at"};
+    QStringList placeholders = {":student_id", ":test_id", ":score", "NOW()"};
 
-        query.bindValue(":student_id", studentId);
-        query.bindValue(":test_id", testId);
-        query.bindValue(":score", score);
+    for (int i = 0; i < 10; ++i) {
+        cols << QString("answer%1").arg(i + 1);
+        if (i < answers.size())
+            placeholders << QString(":answer%1").arg(i + 1);
+        else
+            placeholders << "NULL";
+    }
 
-        if (!query.exec()) {
-            qWarning() << "Ошибка вставки результата:" << query.lastError().text();
-            return false;
-        }
+    QString sql = QString(R"(
+        INSERT INTO student_tests (%1)
+        VALUES (%2)
+        ON CONFLICT (student_id, test_id)
+        DO UPDATE SET score = EXCLUDED.score,
+                      passed_at = EXCLUDED.passed_at,
+                      %3
+    )")
+                      .arg(cols.join(", "))
+                      .arg(placeholders.join(", "))
+                      .arg(QStringList({
+                                           "answer1 = EXCLUDED.answer1",
+                                           "answer2 = EXCLUDED.answer2",
+                                           "answer3 = EXCLUDED.answer3",
+                                           "answer4 = EXCLUDED.answer4",
+                                           "answer5 = EXCLUDED.answer5",
+                                           "answer6 = EXCLUDED.answer6",
+                                           "answer7 = EXCLUDED.answer7",
+                                           "answer8 = EXCLUDED.answer8",
+                                           "answer9 = EXCLUDED.answer9",
+                                           "answer10 = EXCLUDED.answer10"
+                                       }).join(", "));
+
+    QSqlQuery query(db);
+    query.prepare(sql);
+
+    query.bindValue(":student_id", studentId);
+    query.bindValue(":test_id", testId);
+    query.bindValue(":score", score);
+
+    for (int i = 0; i < answers.size() && i < 10; ++i) {
+        query.bindValue(QString(":answer%1").arg(i + 1), answers[i]);
+    }
+
+    if (!query.exec()) {
+        qWarning() << "Ошибка сохранения результата:" << query.lastError().text();
+        return false;
     }
 
     return true;
 }
-

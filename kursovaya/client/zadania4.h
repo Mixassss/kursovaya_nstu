@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QMessageBox>
 
 namespace Ui {
 class zadania4;
@@ -24,7 +25,6 @@ private slots:
     void updateSubmitButtonState();
     void on_pushButton_6_clicked();
     void updateButtonsVisibility();
-    void on_backButton_clicked();
     void onBackClicked();
     void on_pushButton_4_clicked();
     void onServerResponse();

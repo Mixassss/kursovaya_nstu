@@ -3,6 +3,7 @@
 #include <QComboBox>
 #include <QRadioButton>
 #include "test1.h"
+#include <QJsonArray>
 
 zadania4::zadania4(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
     : QDialog(parent), ui(new Ui::zadania4), socket(sharedSocket), userId(currentUserId)
@@ -11,7 +12,6 @@ zadania4::zadania4(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
 
     ui->pushButton_3->setVisible(false); // Вернуться к теории
     ui->pushButton_4->setVisible(false); // Пройти ещё раз
-    ui->pushButton->setVisible(false);
 
     // Изначально кнопка "Ответить" отключена
     ui->pushButton_6->setEnabled(false);
@@ -28,7 +28,6 @@ zadania4::zadania4(QTcpSocket *sharedSocket, int currentUserId, QWidget *parent)
     connect(ui->radioButton_3, &QRadioButton::toggled, this, &zadania4::updateSubmitButtonState);
     connect(ui->radioButton_4, &QRadioButton::toggled, this, &zadania4::updateSubmitButtonState);
 
-    connect(ui->pushButton, &QPushButton::clicked, this, &zadania4::on_backButton_clicked);
     connect(ui->pushButton_3, &QPushButton::clicked, this, &zadania4::onBackClicked);
 
     QJsonObject req;
@@ -50,8 +49,13 @@ void zadania4::lockAnswers() {
 }
 
 void zadania4::resetAnswers() {
-    ui->change2->setCurrentIndex(-1);
-    ui->comboBox_2->setCurrentIndex(-1);
+    // Сбрасываем выбор к заглушке (например, индекс 0)
+    ui->change2->setCurrentIndex(0);
+    ui->comboBox_2->setCurrentIndex(0);
+
+    // Снова включаем возможность выбора
+    ui->change2->setEnabled(true);
+    ui->comboBox_2->setEnabled(true);
 
     QList<QRadioButton*> radios = { ui->radioButton, ui->radioButton_2, ui->radioButton_3, ui->radioButton_4 };
     for (auto r : radios) {
@@ -59,7 +63,7 @@ void zadania4::resetAnswers() {
         r->setChecked(false);
         r->setStyleSheet("");
         r->setAutoExclusive(true);
-        r->setEnabled(true);
+        r->setEnabled(true);   // <-- тоже включаем
     }
 
     ui->change2->setStyleSheet("");
@@ -76,14 +80,17 @@ void zadania4::sendSaveResult(int score) {
     if (ui->radioButton_3->isChecked()) answer3 = "C";
     if (ui->radioButton_4->isChecked()) answer3 = "D";
 
+    QJsonArray answers;
+    answers.append(answer1);
+    answers.append(answer2);
+    answers.append(answer3);
+
     QJsonObject req;
     req["type"] = "save_result";
     req["student_id"] = userId;
     req["test_id"] = 4;
     req["score"] = score;
-    req["answer1"] = answer1;
-    req["answer2"] = answer2;
-    req["answer3"] = answer3;
+    req["answers"] = answers;
 
     socket->write(QJsonDocument(req).toJson(QJsonDocument::Compact) + "\n");
     socket->flush();
@@ -124,7 +131,15 @@ void zadania4::on_pushButton_6_clicked() {
         alreadyPassed = true;
         emit scoreUpdated(score);
     }
+
+    // 🔹 Проверка на максимальный результат
+    if (score == 5) {
+        QMessageBox::information(this, "Поздравляем",
+                                 "Поздравляем! Тест 4 пройден на 5 из 5.");
+        this->close();
+    }
 }
+
 
 void zadania4::updateSubmitButtonState() {
     // Проверяем, выбраны ли ответы из всех групп
@@ -185,20 +200,16 @@ void zadania4::updateButtonsVisibility() {
     if (correctAnswersCount == 3) {
         ui->pushButton_4->setVisible(false); // Скрыть кнопку "Пройти ещё раз"
         ui->pushButton_3->setVisible(false); // Скрыть кнопку "Вернуться к теории"
-        ui->pushButton->setVisible(true);
     } else if (correctAnswersCount == 2) {
         ui->pushButton_4->setVisible(true); // Показать кнопку "Пройти ещё раз"
-        ui->pushButton_3->setVisible(false); // Скрыть кнопку "Вернуться к теории"
-        ui->pushButton->setVisible(true);
+        ui->pushButton_3->setVisible(true); // Скрыть кнопку "Вернуться к теории"
     } else if (correctAnswersCount == 1) {
-        ui->pushButton_4->setVisible(false); // Показать кнопку "Пройти ещё раз"
+        ui->pushButton_4->setVisible(true); // Показать кнопку "Пройти ещё раз"
         ui->pushButton_3->setVisible(true); // Показать кнопку "Вернуться к теории"
-        ui->pushButton->setVisible(true);
     } else {
         // Если ни один ответ не верный
-        ui->pushButton_4->setVisible(false); // Скрыть кнопку "Пройти ещё раз"
+        ui->pushButton_4->setVisible(true); // Скрыть кнопку "Пройти ещё раз"
         ui->pushButton_3->setVisible(true); // Показать кнопку "Вернуться к теории"
-        ui->pushButton->setVisible(true);
     }
 }
 
@@ -210,22 +221,20 @@ void zadania4::onServerResponse() {
     if (obj["type"] == "get_result") {
         if (obj["status"] == "ok") {
             int score = obj["score"].toInt();
-            lastAnswer1 = obj["answer1"].toString();
-            lastAnswer2 = obj["answer2"].toString();
-            lastAnswer3 = obj["answer3"].toString();
-
-            alreadyPassed = true;
-            restoreAnswersAndHighlight(lastAnswer1, lastAnswer2, lastAnswer3);
+            QJsonArray arr = obj["answers"].toArray();
+            if (arr.size() >= 3) {
+                lastAnswer1 = arr.at(0).toString();
+                lastAnswer2 = arr.at(1).toString();
+                lastAnswer3 = arr.at(2).toString();
+                alreadyPassed = true;
+                restoreAnswersAndHighlight(lastAnswer1, lastAnswer2, lastAnswer3);
+            }
             ui->pushButton_6->setVisible(false);
             emit scoreUpdated(score);
         } else if (obj["status"] == "empty") {
             alreadyPassed = false;
         }
     }
-}
-
-void zadania4::on_backButton_clicked() {
-    reject();
 }
 
 zadania4::~zadania4()
