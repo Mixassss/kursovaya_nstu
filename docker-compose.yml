@@ -20,7 +20,7 @@ services:
     container_name: db
     environment:
       POSTGRES_USER: postgres  
-      POSTGRES_PASSWORD: superparol  
+      POSTGRES_PASSWORD: Password123  
       POSTGRES_DB: learnprogamixas  
     ports:
       - "5434:5432"  
